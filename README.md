@@ -1,2 +1,2 @@
 # g2p-payments-bridge
-Module to offer interoperability with G2P Connect for disbursement
+Module to offer interoperability with G2P Connect for cash disbursement
