@@ -1,0 +1,39 @@
+name: Build Docker and Push
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  docker-build:
+    name: Docker Build and Push
+    runs-on: ubuntu-latest
+    env:
+      NAMESPACE: ${{ secrets.docker_hub_organisation }}
+      SERVICE_NAME: g2p-payments-bridge
+    steps:
+      - uses: actions/checkout@v3
+      - name: Docker build and push
+        run: |
+          echo "${{ secrets.docker_hub_token }}" | docker login -u ${{ secrets.docker_hub_actor }} --password-stdin
+          if [ $? -ne 0 ];then
+            echo "::error::Failed to Login to dockerhub"
+            exit 1;
+          fi
+
+          IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+
+          # Change all uppercase to lowercase
+          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          VERSION=$BRANCH_NAME
+          if [[ $BRANCH_NAME == master || $BRANCH_NAME == main ]]; then
+            VERSION=develop
+          fi
+          echo IMAGE_ID=$IMAGE_ID
+          echo VERSION=$VERSION
+
+          docker build . \
+            --file Dockerfile \
+            --tag $IMAGE_ID:$VERSION
+
+          docker push $IMAGE_ID:$VERSION
