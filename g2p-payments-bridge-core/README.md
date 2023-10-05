@@ -6,4 +6,4 @@
 ![PyPI](https://img.shields.io/pypi/v/g2p-payments-bridge-core?label=pypi%20package)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/g2p-payments-bridge-core)
 
-Core module for G2P Payments Bridge, which contains API layer and multiplexer for different payment backends.
+Core module for G2P Payments Bridge, which contains API layer and multiplexer for different payment backends. This implements G2P Connect Disburse APIs.
