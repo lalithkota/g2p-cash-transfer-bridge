@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List, Optional
 
 from pydantic import BaseModel
@@ -20,7 +21,7 @@ class DisbursementRequest(BaseModel):
     locale: str
 
 
-class DisburseRequestMessage(BaseModel):
+class DisbursementTransactionRequest(BaseModel):
     transaction_id: str
     disbursements: List[DisbursementRequest]
 
@@ -28,12 +29,12 @@ class DisburseRequestMessage(BaseModel):
 class DisburseHttpRequest(BaseModel):
     signature: Optional[str]
     header: MsgHeader
-    message: DisburseRequestMessage
+    message: DisbursementTransactionRequest
 
 
 class DisbursementStatus(BaseModel):
     reference_id: str
-    timestamp: str
+    timestamp: datetime
     status: str
     status_reason_code: Optional[str]
     status_reason_message: Optional[str]
@@ -47,7 +48,7 @@ class DisbursementStatus(BaseModel):
     locale: Optional[str]
 
 
-class DisburseStatusMessage(BaseModel):
+class DisbursementTransactionResponse(BaseModel):
     transaction_id: str
     disbursements_status: List[DisbursementStatus]
 
@@ -55,4 +56,4 @@ class DisburseStatusMessage(BaseModel):
 class DisburseHttpResponse(BaseModel):
     signature: Optional[str]
     header: MsgResponseHeader
-    message: DisburseStatusMessage
+    message: DisbursementTransactionResponse
