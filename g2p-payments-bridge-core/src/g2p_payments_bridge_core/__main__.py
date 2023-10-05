@@ -1,5 +1,3 @@
-from openg2p_fastapi_common.app import main
+from .app import Initializer
 
-from .app import initialize
-
-main(initialize)
+Initializer().main()
