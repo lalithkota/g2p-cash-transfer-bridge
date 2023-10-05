@@ -22,7 +22,7 @@ jobs:
       - name: Generate openapi json
         run: |
           mkdir -p api-docs/generated
-          python -m g2p_payments_bridge_core getOpenAPI api-docs/generated/openapi.json
+          python main.py getOpenAPI api-docs/generated/openapi.json
           if ! [ -z "$(git status --porcelain=v1 2>/dev/null -- api-docs/generated/openapi.json)" ]; then
             export OPENAPI_CHANGED="true"
             echo OPENAPI_CHANGED=$OPENAPI_CHANGED >> $GITHUB_ENV
