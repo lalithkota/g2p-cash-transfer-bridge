@@ -6,13 +6,14 @@ from ..models.disburse import DisburseHttpRequest, DisburseHttpResponse
 class DisbursementController(BaseController):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
         self.router.add_api_route(
-            "/disburse/sync/disburse", self.post_dsbt_sync_disburse
+            "/disburse/sync/disburse",
+            self.post_dsbt_sync_disburse,
+            responses={200: {"model": DisburseHttpResponse}},
         )
 
-    async def post_dsbt_sync_disburse(
-        request: DisburseHttpRequest,
-    ) -> DisburseHttpResponse:
+    async def post_dsbt_sync_disburse(request: DisburseHttpRequest):
         try:
             # Validate the message signature here
 

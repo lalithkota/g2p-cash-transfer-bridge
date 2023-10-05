@@ -8,9 +8,11 @@ Module to offer interoperability with G2P Connect for cash disbursement
 
 ## Available Packages
 
-addon | version | summary
+Package | Version | Summary
 ----- | ------- | -------
-[g2p-payments-bridge-core](g2p-payments-bridge-core/) | 0.1.0 | G2P Payments Bridge: Code
+[g2p-payments-bridge-core](g2p-payments-bridge-core/) | 0.1.0 | G2P Payments Bridge: Core
+[gpb-translate-id-fa](gpb-translate-id-fa/) | 0.1.0 | G2P Payments Bridge: Translate ID to Financial Address
+[gpb-mpesa-payment-backend](gpb-mpesa-payment-backend/) | 0.1.0 | G2P Payments Bridge: Simple-mpesa Payment Backend.
 
 ## Licenses
 
