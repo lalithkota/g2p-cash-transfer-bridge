@@ -1,14 +1,18 @@
 from openg2p_fastapi_common.controller import BaseController
+
 from ..models.disburse import DisburseHttpRequest, DisburseHttpResponse
 
-from openg2p_fastapi_common.context import app_registry
 
 class DisbursementController(BaseController):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.router.add_api_route("/disburse/sync/disburse", self.post_dsbt_sync_disburse)
+        self.router.add_api_route(
+            "/disburse/sync/disburse", self.post_dsbt_sync_disburse
+        )
 
-    async def post_dsbt_sync_disburse(request: DisburseHttpRequest) -> DisburseHttpResponse:
+    async def post_dsbt_sync_disburse(
+        request: DisburseHttpRequest,
+    ) -> DisburseHttpResponse:
         try:
             # Validate the message signature here
 
