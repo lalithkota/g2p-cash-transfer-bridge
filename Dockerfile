@@ -19,5 +19,5 @@ RUN python3 -m venv venv \
   && . ./venv/bin/activate
 RUN python3 -m pip install ./src/g2p-payments-bridge-core
 
-CMD python3 -m g2p_payments_bridge_core dbmigrate; \
+CMD python3 -m g2p_payments_bridge_core migrate; \
   python3 -m g2p_payments_bridge_core run
