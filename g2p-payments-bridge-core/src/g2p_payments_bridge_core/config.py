@@ -15,3 +15,5 @@ class Settings(Settings):
     ***********************************
     """
     openapi_version: str = "0.1.0"
+
+    enable_id_translation: bool = True

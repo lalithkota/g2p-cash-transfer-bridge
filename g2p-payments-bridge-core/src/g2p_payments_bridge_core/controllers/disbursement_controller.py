@@ -1,9 +1,12 @@
 from openg2p_fastapi_common.controller import BaseController
 
+from ..config import Settings
 from ..models.disburse import DisburseHttpRequest, DisburseHttpResponse
 from ..models.msg_header import MsgResponseHeader
 from ..services.id_translate_service import IdTranslateService
 from ..services.payment_backend import BasePaymentBackendService
+
+_config = Settings.get_config()
 
 
 class DisbursementController(BaseController):
@@ -23,8 +26,11 @@ class DisbursementController(BaseController):
         # Validate the message signature here
 
         disburse_txn = request.message.model_copy()
-        for disburse in disburse_txn.disbursements:
-            disburse.payee_fa = self.id_translate_service.translate(disburse.payee_fa)
+        if _config.enable_id_translation:
+            for disburse in disburse_txn.disbursements:
+                disburse.payee_fa = self.id_translate_service.translate(
+                    disburse.payee_fa
+                )
         disburse_txn_response = self.payment_backend_service.disburse(disburse_txn)
 
         return DisburseHttpResponse(
