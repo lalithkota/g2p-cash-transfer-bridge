@@ -20,11 +20,10 @@ class DisbursementController(BaseController):
             methods=["POST"],
         )
         self.id_translate_service = IdTranslateService.get_component()
-        self.payment_backend_service = BasePaymentBackendService.get_component()
 
     async def post_dsbt_sync_disburse(self, request: DisburseHttpRequest):
         # Validate the message signature here
-
+        self.payment_backend_service = BasePaymentBackendService.get_component()
         disburse_txn = request.message.model_copy()
         if _config.enable_id_translation:
             for disburse in disburse_txn.disbursements:
@@ -35,6 +34,19 @@ class DisbursementController(BaseController):
 
         return DisburseHttpResponse(
             signature=request.signature,
-            header=MsgResponseHeader(),
+            header=MsgResponseHeader(
+                message_id="",
+                message_ts="datetime.now()",
+                action="",
+                status="paid",
+                satus_reason_code="GPB-MSP-001",
+                status_reason_message="",
+                total_count="",
+                completed_count="",
+                sender_id=request.receiver_id,
+                receiver_id=request.sender_id,
+                is_msg_encrypted=False,
+                meta={},
+            ),
             message=disburse_txn_response,
         )

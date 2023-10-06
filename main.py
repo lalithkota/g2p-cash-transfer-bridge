@@ -8,6 +8,8 @@ from gpb_translate_id_fa.app import Initializer as TranslateIdInitializer
 
 main_init = CoreInitializer()
 TranslateIdInitializer()
+
 SimpleMpesaPaymentBackendInitializer()
+
 
 main_init.main()

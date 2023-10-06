@@ -1,10 +1,13 @@
 import logging
+from datetime import datetime
 
 import httpx
 from g2p_payments_bridge_core.models.disburse import (
+    DisburseHttpResponse,
     DisbursementTransactionRequest,
     DisbursementTransactionResponse,
 )
+from g2p_payments_bridge_core.models.msg_header import MsgResponseHeader
 from g2p_payments_bridge_core.services.payment_backend import BasePaymentBackendService
 
 from ..config import Settings
@@ -70,3 +73,38 @@ class SimpleMpesaPaymentBackendService(BasePaymentBackendService):
 
         except Exception:
             _logger.exception("Mpesa Payment Failed during authentication")
+
+        disbursement_response = DisbursementTransactionResponse(
+            reference_id="",
+            timestamp=datetime.now(),
+            status="paid",
+            status_reason_code="GPB-MSP-001",
+            status_reason_message="",
+            instruction="",
+            amount=DisbursementTransactionRequest,
+            payer_fa="",
+            payer_name="",
+            payee_fa="",
+            payee_name="",
+            currency_code="",
+            locale="",
+        )
+
+        return DisburseHttpResponse(
+            signature="",
+            header=MsgResponseHeader(
+                message_id="",
+                message_ts=datetime.now(),
+                action="response_action",
+                status="paid",
+                status_reason_code="GPB-MSP-001",
+                status_reason_message="",
+                total_count="",
+                completed_count="",
+                sender_id="response_sender",
+                receiver_id="response_receiver",
+                is_msg_encrypted=True,
+                meta={"response_key": "response_value"},
+            ),
+            message=disbursement_response,
+        )
