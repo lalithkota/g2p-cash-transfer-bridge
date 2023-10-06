@@ -3,4 +3,4 @@ from pydantic_settings import SettingsConfigDict
 
 
 class Settings(Settings):
-    model_config = SettingsConfigDict(env_prefix="gpb_id_translate_")
+    model_config = SettingsConfigDict(env_prefix="gpb_id_translate_", env_file=".env")

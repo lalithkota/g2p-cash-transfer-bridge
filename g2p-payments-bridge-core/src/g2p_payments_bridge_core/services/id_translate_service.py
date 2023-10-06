@@ -7,4 +7,4 @@ class IdTranslateService(BaseService):
         Get an ID and return it.
         This method should be implemented in concrete subclasses.
         """
-        pass
+        raise NotImplementedError()

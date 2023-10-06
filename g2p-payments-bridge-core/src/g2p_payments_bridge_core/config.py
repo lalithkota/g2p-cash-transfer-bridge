@@ -3,11 +3,11 @@ from pydantic_settings import SettingsConfigDict
 
 
 class Settings(Settings):
-    model_config = SettingsConfigDict(env_prefix="gpb_core_")
+    model_config = SettingsConfigDict(env_prefix="gpb_core_", env_file=".env")
 
     openapi_title: str = "G2P Payments Bridge"
     openapi_description: str = """
-    This module implements G2P Connect Disburse APIs.\
+    This module implements G2P Connect Disburse APIs.
     It contains API layer and multiplexer for different payment backends.
 
     ***********************************
