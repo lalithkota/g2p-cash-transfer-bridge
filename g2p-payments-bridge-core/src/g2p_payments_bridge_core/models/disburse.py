@@ -1,6 +1,6 @@
 from datetime import datetime
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from pydantic import BaseModel
 
@@ -71,3 +71,53 @@ class DisburseHttpResponse(BaseModel):
     signature: Optional[str]
     header: MsgResponseHeader
     message: DisburseResponse
+
+
+class TxnStatusTypeEnum(Enum):
+    disburse = "disburse"
+    # TODO: Not supported right now
+    # search = "search"
+
+
+class TxnStatusAttributeTypeEnum(Enum):
+    reference_id_list = "reference_id_list"
+    # TODO: Not supported right now
+    # transaction_id = "transaction_id"
+    # correlation_id = "correlation_id"
+
+
+class SingleDisburseTxnStatusRequest(BaseModel):
+    reference_id: str
+    txn_type: TxnStatusTypeEnum
+    attribute_type: TxnStatusAttributeTypeEnum
+    attribute_value: Union[str, List[str]]
+    locale: str = "eng"
+
+
+class DisburseTxnStatusRequest(BaseModel):
+    transaction_id: str
+    txnstatus_request: SingleDisburseTxnStatusRequest
+
+
+class DisburseTxnStatusHttpRequest(BaseModel):
+    signature: Optional[str]
+    header: MsgHeader
+    message: DisburseTxnStatusRequest
+
+
+class SingleDisburseTxnStatusResponse(BaseModel):
+    txn_type: str
+    # TODO: Remove none from following
+    txn_status: Union[DisburseResponse, List[Union[SingleDisburseResponse, None]]]
+
+
+class DisburseTxnStatusResponse(BaseModel):
+    transaction_id: str
+    correlation_id: str
+    txnstatus_response: SingleDisburseTxnStatusResponse
+
+
+class DisburseTxnStatusHttpResponse(BaseModel):
+    signature: Optional[str]
+    header: MsgResponseHeader
+    message: DisburseTxnStatusResponse

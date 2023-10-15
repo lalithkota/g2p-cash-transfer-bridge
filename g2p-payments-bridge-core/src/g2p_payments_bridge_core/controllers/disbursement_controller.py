@@ -8,6 +8,8 @@ from ..models.disburse import (
     DisburseHttpRequest,
     DisburseHttpResponse,
     DisburseResponse,
+    DisburseTxnStatusHttpRequest,
+    DisburseTxnStatusHttpResponse,
     SingleDisburseResponse,
 )
 from ..models.msg_header import MsgResponseHeader, MsgStatusEnum
@@ -26,8 +28,14 @@ class DisbursementController(BaseController):
 
         self.router.add_api_route(
             "/disburse/sync/disburse",
-            self.post_dsbt_sync_disburse,
+            self.disburse_sync_disburse,
             responses={200: {"model": DisburseHttpResponse}},
+            methods=["POST"],
+        )
+        self.router.add_api_route(
+            "/disburse/sync/txn/status",
+            self.disburse_sync_txn_status,
+            responses={200: {"model": DisburseTxnStatusHttpResponse}},
             methods=["POST"],
         )
 
@@ -37,7 +45,7 @@ class DisbursementController(BaseController):
             self._id_translate_service = IdTranslateService.get_component()
         return self._id_translate_service
 
-    async def post_dsbt_sync_disburse(self, request: DisburseHttpRequest):
+    async def disburse_sync_disburse(self, request: DisburseHttpRequest):
         # Perform any extra validations here
         if not request.message.transaction_id:
             request.message.transaction_id = str(uuid.uuid4())
@@ -82,4 +90,32 @@ class DisbursementController(BaseController):
                     for dis in request.message.disbursements
                 ],
             ),
+        )
+
+    async def disburse_sync_txn_status(self, request: DisburseTxnStatusHttpRequest):
+        disburse_status_response = await self.payment_multiplexer.disbursement_status(
+            request.message
+        )
+
+        # TODO: compute other attributes. For now being hard coded
+        final_status = MsgStatusEnum.succ
+        final_status_code = None
+        final_status_message = None
+        total_count = 0
+        completed_count = 0
+
+        return DisburseTxnStatusHttpResponse(
+            signature=request.signature,
+            header=MsgResponseHeader(
+                message_id=str(uuid.uuid4()),
+                action="status",
+                status=final_status,
+                status_reason_code=final_status_code,
+                status_reason_message=final_status_message,
+                sender_id=_config.response_sender_id,
+                receiver_id=request.header.sender_id,
+                total_count=total_count,
+                completed_count=completed_count,
+            ),
+            message=disburse_status_response,
         )

@@ -7,6 +7,8 @@ class Settings(Settings):
         env_prefix="gpb_simple_mpesa_", env_file=".env", extra="allow"
     )
 
+    payment_backend_name: str = "mpesa"
+
     agent_email: str = ""
     agent_password: str = ""
     auth_url: str = ""

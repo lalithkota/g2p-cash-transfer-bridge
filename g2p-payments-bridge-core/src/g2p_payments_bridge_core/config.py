@@ -65,10 +65,6 @@ class Settings(Settings):
 
     @model_validator(mode="after")
     def sort_fa_mappings(self) -> "Settings":
-        self.multiplex_fa_backend_mapping = self.multiplex_fa_backend_mapping.sort(
-            key=lambda x: x.order
-        )
-        self.multiplex_payerfa_payeefa_mapping = (
-            self.multiplex_payerfa_payeefa_mapping.sort(key=lambda x: x.order)
-        )
+        self.multiplex_fa_backend_mapping.sort(key=lambda x: x.order)
+        self.multiplex_payerfa_payeefa_mapping.sort(key=lambda x: x.order)
         return self
