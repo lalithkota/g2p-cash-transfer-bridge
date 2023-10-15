@@ -1,15 +1,12 @@
 from openg2p_fastapi_common.service import BaseService
 
 from ..models.disburse import (
-    DisbursementTransactionRequest,
-    DisbursementTransactionResponse,
+    DisburseRequest,
 )
 
 
 class BasePaymentBackendService(BaseService):
-    def disburse(
-        self, disbursements: DisbursementTransactionRequest
-    ) -> DisbursementTransactionResponse:
+    async def disburse(self, disbursement_request: DisburseRequest):
         """
         Get an ID and return it.
         This method should be implemented in concrete subclasses.

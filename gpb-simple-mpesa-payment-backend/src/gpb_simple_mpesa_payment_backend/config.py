@@ -3,7 +3,9 @@ from pydantic_settings import SettingsConfigDict
 
 
 class Settings(Settings):
-    model_config = SettingsConfigDict(env_prefix="gpb_simple_mpesa_", env_file=".env")
+    model_config = SettingsConfigDict(
+        env_prefix="gpb_simple_mpesa_", env_file=".env", extra="allow"
+    )
 
     agent_email: str = ""
     agent_password: str = ""

@@ -17,7 +17,8 @@ classifiers = [
   "Operating System :: OS Independent",
 ]
 dependencies=[
-  "g2p-payments-bridge-core"
+  "g2p-payments-bridge-core",
+  "openg2p-common-g2pconnect-id-mapper"
 ]
 
 [project.urls]
