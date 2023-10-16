@@ -47,7 +47,7 @@ class MojaloopSdkPaymentBackendService(BasePaymentBackendService):
                     ),
                 },
                 "currency": disbursement.currency_code,
-                "amount": disbursement.amount,
+                "amount": float(disbursement.amount),
                 "note": disbursement.note,
                 "transactionType": "TRANSFER",
                 "amountType": "SEND",
@@ -85,4 +85,4 @@ class MojaloopSdkPaymentBackendService(BasePaymentBackendService):
         ]
 
     async def get_payee_id_value_from_payee_fa(self, fa: str) -> str:
-        return fa[fa.find(":") + 1 : fa.rfind(".")]
+        return fa[fa.find(":") + 1 : fa.rfind("@")]
