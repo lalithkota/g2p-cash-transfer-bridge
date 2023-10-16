@@ -1,65 +1,67 @@
 import logging
-from datetime import datetime
+from typing import Dict, List
 
 import httpx
 from g2p_payments_bridge_core.models.disburse import (
-    DisburseHttpResponse,
-    DisbursementTransactionRequest,
-    DisbursementTransactionResponse,
+    DisburseRequest,
+    SingleDisburseResponse,
 )
-from g2p_payments_bridge_core.models.msg_header import MsgResponseHeader
+from g2p_payments_bridge_core.models.msg_header import MsgStatusEnum
 from g2p_payments_bridge_core.services.payment_backend import BasePaymentBackendService
+from pydantic import BaseModel
 
 from ..config import Settings
 
 _config = Settings.get_config()
-
 _logger = logging.getLogger(__name__)
 
 
+class ReferenceIdStatus(BaseModel):
+    txn_id: str
+    ref_id: str
+    status: MsgStatusEnum
+
+
 class SimpleMpesaPaymentBackendService(BasePaymentBackendService):
-    def disburse(
-        self, disbursement_txn: DisbursementTransactionRequest
-    ) -> DisbursementTransactionResponse:
-        """
-        Get an ID and return it.
-        This method should be implemented in concrete subclasses.
-        """
+    def __init__(self, name="", **kwargs):
+        super().__init__(name if name else _config.payment_backend_name, **kwargs)
+        self.reference_ids_list: Dict[str, ReferenceIdStatus] = {}
+
+    async def disburse(self, disbursement_request: DisburseRequest):
         try:
             data = {"email": _config.agent_email, "password": _config.agent_password}
-            headers = {"Content-Type": "application/x-www-form-urlencoded"}
 
             response = httpx.post(
                 _config.auth_url,
                 data=data,
-                headers=headers,
                 timeout=_config.api_timeout,
             )
             response.raise_for_status()
             response_data = response.json()
             auth_token = response_data.get("token")
 
-            completed_payments = 0
-
-            for disbursement in disbursement_txn.disbursements:
-                payee_id_value = disbursement.payee_fa.split(":")[-1]
-                amount = int(disbursement.amount)
-                auth_header = "Bearer " + auth_token
+            for disbursement in disbursement_request.disbursements:
+                self.reference_ids_list[disbursement.reference_id] = ReferenceIdStatus(
+                    txn_id=disbursement_request.transaction_id,
+                    ref_id=disbursement.reference_id,
+                    status=MsgStatusEnum.pdng,
+                )
                 headers = {
-                    "Authorization": auth_header,
-                    "Content-Type": "application/x-www-form-urlencoded",
+                    "Authorization": f"Bearer {auth_token}",
                 }
                 data = {
-                    "amount": amount,
-                    "accountNo": payee_id_value,
-                    "customerType": self.customer_type,
+                    "amount": int(disbursement.amount),
+                    "accountNo": await self.get_account_no_from_payee_fa(
+                        disbursement.payee_fa
+                    ),
+                    "customerType": _config.customer_type,
                 }
                 try:
                     response = httpx.post(
-                        self.payment_endpoint_url,
+                        _config.payment_url,
                         headers=headers,
                         data=data,
-                        timeout=self.api_timeout,
+                        timeout=_config.api_timeout,
                     )
                     _logger.info(
                         "MPesa Payment Transfer response: %s", response.content
@@ -67,44 +69,28 @@ class SimpleMpesaPaymentBackendService(BasePaymentBackendService):
                     response.raise_for_status()
 
                     # TODO: Do Status check rather than hardcoding
-                    completed_payments += 1
+                    self.reference_ids_list[
+                        disbursement.reference_id
+                    ].status = MsgStatusEnum.succ
                 except Exception:
                     _logger.exception("Mpesa Payment Failed with unknown reason")
+                    self.reference_ids_list[
+                        disbursement.reference_id
+                    ].status = MsgStatusEnum.rjct
 
         except Exception:
             _logger.exception("Mpesa Payment Failed during authentication")
 
-        disbursement_response = DisbursementTransactionResponse(
-            reference_id="",
-            timestamp=datetime.now(),
-            status="paid",
-            status_reason_code="GPB-MSP-001",
-            status_reason_message="",
-            instruction="",
-            amount=DisbursementTransactionRequest,
-            payer_fa="",
-            payer_name="",
-            payee_fa="",
-            payee_name="",
-            currency_code="",
-            locale="",
-        )
+    async def disburse_status_by_ref_ids(
+        self, ref_ids: List[str]
+    ) -> List[SingleDisburseResponse]:
+        return [
+            SingleDisburseResponse(
+                reference_id=ref,
+                status=self.reference_ids_list[ref].status,
+            )
+            for ref in ref_ids
+        ]
 
-        return DisburseHttpResponse(
-            signature="",
-            header=MsgResponseHeader(
-                message_id="",
-                message_ts=datetime.now(),
-                action="response_action",
-                status="paid",
-                status_reason_code="GPB-MSP-001",
-                status_reason_message="",
-                total_count="",
-                completed_count="",
-                sender_id="response_sender",
-                receiver_id="response_receiver",
-                is_msg_encrypted=True,
-                meta={"response_key": "response_value"},
-            ),
-            message=disbursement_response,
-        )
+    async def get_account_no_from_payee_fa(self, fa: str) -> str:
+        return fa[fa.find(":") + 1 : fa.rfind(".")]
