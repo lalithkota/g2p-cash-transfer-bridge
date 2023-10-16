@@ -50,7 +50,7 @@ class SimpleMpesaPaymentBackendService(BasePaymentBackendService):
                     "Authorization": f"Bearer {auth_token}",
                 }
                 data = {
-                    "amount": int(disbursement.amount),
+                    "amount": int(float(disbursement.amount)),
                     "accountNo": await self.get_account_no_from_payee_fa(
                         disbursement.payee_fa
                     ),

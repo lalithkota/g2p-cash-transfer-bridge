@@ -1,3 +1,5 @@
+from typing import List
+
 from g2p_payments_bridge_core.services import IdTranslateService
 from openg2p_common_g2pconnect_id_mapper.models.common import MapperValue
 from openg2p_common_g2pconnect_id_mapper.service.resolve import (
@@ -17,21 +19,18 @@ class G2PConnectIdTranslateService(IdTranslateService):
             self._id_mapper_service = IDMapperResolveService.get_component()
         return self._id_mapper_service
 
-    async def translate(self, id: str) -> str:
-        res = await self.id_mapper_service.resolve_request_sync([MapperValue(id=id)])
+    async def translate(self, ids: List[str]) -> List[str]:
+        res = await self.id_mapper_service.resolve_request_sync(
+            [MapperValue(id=id) for id in ids]
+        )
         if not res:
             raise BaseAppException(
                 "GPB-IMS-300",
-                "ID Mapper Resolve Id: Txn ID not found",
-                http_status_code=500,
+                "ID Mapper Resolve Id: No response received",
             )
         if not res.refs:
             raise BaseAppException(
                 "G2P-IMS-301",
-                "ID Mapper Resolve Id: Invalid Txn without any requests found",
-                http_status_code=500,
+                "ID Mapper Resolve Id: Invalid Txn without any requests received",
             )
-        for key in res.refs:
-            # Its a list of one item only
-            return res.refs[key].fa
-        return None
+        return [res.refs[key].fa for key in res.refs]
