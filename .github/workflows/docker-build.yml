@@ -15,7 +15,7 @@ jobs:
       - uses: actions/checkout@v3
       - name: Docker build and push
         run: |
-          echo "BRANCH_NAME=$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')" >> $GITHUB_ENV
+          BRANCH_NAME=$(echo ${{ github.ref }} | sed -e 's,.*/\(.*\),\1,')
           echo "${{ secrets.docker_hub_token }}" | docker login -u ${{ secrets.docker_hub_actor }} --password-stdin
           if [ $? -ne 0 ];then
             echo "::error::Failed to Login to dockerhub"
