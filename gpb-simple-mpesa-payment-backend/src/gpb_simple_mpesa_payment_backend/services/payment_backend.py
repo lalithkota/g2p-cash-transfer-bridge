@@ -79,7 +79,7 @@ class SimpleMpesaPaymentBackendService(BasePaymentBackendService):
                     ].status = MsgStatusEnum.rjct
 
         except Exception:
-            _logger.exception("Mpesa Payment Failed during authentication")
+            _logger.exception("Mpesa Payment Failed during authentication")k
 
     async def disburse_status_by_ref_ids(
         self, ref_ids: List[str]
