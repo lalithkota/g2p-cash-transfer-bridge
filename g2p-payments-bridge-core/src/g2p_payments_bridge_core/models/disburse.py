@@ -16,6 +16,7 @@ class SingleDisburseStatusEnum(Enum):
     rjct_amount_invalid = "rjct.amount.invalid"
     rjct_schedule_ts_invalid = "rjct.schedule_ts.invalid"
     rjct_currency_code_invalid = "rjct.currency_code.invalid"
+    rjct_payment_failed = "rjct.payment.failed"
 
 
 class SingleDisburseRequest(BaseModel):
@@ -80,9 +81,9 @@ class TxnStatusTypeEnum(Enum):
 
 
 class TxnStatusAttributeTypeEnum(Enum):
+    transaction_id = "transaction_id"
     reference_id_list = "reference_id_list"
     # TODO: Not supported right now
-    # transaction_id = "transaction_id"
     # correlation_id = "correlation_id"
 
 

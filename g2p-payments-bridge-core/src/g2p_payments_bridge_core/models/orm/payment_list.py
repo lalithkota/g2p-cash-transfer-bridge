@@ -1,13 +1,17 @@
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from openg2p_fastapi_common.context import dbengine
 from openg2p_fastapi_common.models import BaseORMModelWithTimes
-from sqlalchemy import DateTime, String
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy import DateTime, Enum, String, select
+from sqlalchemy.ext.asyncio import async_sessionmaker
 from sqlalchemy.orm import Mapped, mapped_column
 
-from g2p_payments_bridge_core.models.disburse import SingleDisburseRequest
+from g2p_payments_bridge_core.models.disburse import (
+    SingleDisburseRequest,
+    SingleDisburseStatusEnum,
+)
+from g2p_payments_bridge_core.models.msg_header import MsgStatusEnum
 
 
 class PaymentListItem(BaseORMModelWithTimes):
@@ -20,9 +24,11 @@ class PaymentListItem(BaseORMModelWithTimes):
     to_fa: Mapped[str] = mapped_column(String())
     amount: Mapped[str] = mapped_column(String())
     currency: Mapped[str] = mapped_column(String())
-    status: Mapped[str] = mapped_column(String())
+    status: Mapped[MsgStatusEnum] = mapped_column(Enum(MsgStatusEnum))
     file: Mapped[Optional[str]] = mapped_column(String())
-    error_code: Mapped[Optional[str]] = mapped_column(String())
+    error_code: Mapped[Optional[SingleDisburseStatusEnum]] = mapped_column(
+        Enum(SingleDisburseStatusEnum)
+    )
     error_msg: Mapped[Optional[str]] = mapped_column(String())
     backend_name: Mapped[Optional[str]] = mapped_column(String())
 
@@ -36,9 +42,10 @@ class PaymentListItem(BaseORMModelWithTimes):
         file: str = None,
         error_code: str = None,
         error_msg: str = None,
-    ):
+    ) -> "PaymentListItem":
         payment_item = None
-        async with AsyncSession(dbengine.get()) as session:
+        async_session_maker = async_sessionmaker(dbengine.get())
+        async with async_session_maker() as session:
             payment_item = PaymentListItem(
                 batch_id=batch_id,
                 request_id=disburse_request.reference_id,
@@ -59,3 +66,29 @@ class PaymentListItem(BaseORMModelWithTimes):
             session.add(payment_item)
             await session.commit()
         return payment_item
+
+    @classmethod
+    async def get_by_batch_id(cls, batch_id: str) -> List["PaymentListItem"]:
+        response = []
+        async_session_maker = async_sessionmaker(dbengine.get())
+        async with async_session_maker() as session:
+            stmt = select(cls).where(cls.batch_id == batch_id).order_by(cls.id.asc())
+            result = await session.execute(stmt)
+
+            response = list(result.scalars())
+        return response
+
+    @classmethod
+    async def get_by_request_ids(
+        cls, request_ids: List[str]
+    ) -> List["PaymentListItem"]:
+        response = []
+        async_session_maker = async_sessionmaker(dbengine.get())
+        async with async_session_maker() as session:
+            stmt = (
+                select(cls).where(cls.request_id in request_ids).order_by(cls.id.asc())
+            )
+            result = await session.execute(stmt)
+
+            response = list(result.scalars())
+        return response

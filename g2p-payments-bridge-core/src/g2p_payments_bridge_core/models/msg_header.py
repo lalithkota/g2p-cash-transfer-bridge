@@ -10,6 +10,7 @@ class MsgStatusEnum(Enum):
     pdng = "pdng"
     succ = "succ"
     rjct = "rjct"
+    fail = "fail"
 
 
 class MsgStatusReasonCodeEnum(Enum):

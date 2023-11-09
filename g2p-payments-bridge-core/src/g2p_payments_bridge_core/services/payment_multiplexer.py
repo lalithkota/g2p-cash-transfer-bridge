@@ -1,6 +1,8 @@
 import logging
 import re
+import uuid
 
+from openg2p_fastapi_common.errors.http_exceptions import BadRequestError
 from openg2p_fastapi_common.service import BaseService
 
 from g2p_payments_bridge_core.models.orm.payment_list import PaymentListItem
@@ -8,8 +10,12 @@ from g2p_payments_bridge_core.models.orm.payment_list import PaymentListItem
 from ..config import Settings
 from ..models.disburse import (
     DisburseRequest,
+    DisburseResponse,
     DisburseTxnStatusRequest,
     DisburseTxnStatusResponse,
+    SingleDisburseResponse,
+    SingleDisburseTxnStatusResponse,
+    TxnStatusAttributeTypeEnum,
 )
 from .id_translate_service import IdTranslateService
 
@@ -44,7 +50,7 @@ class PaymentMultiplexerService(BaseService):
                     for disbursement in disburse_request.disbursements
                 ]
             )
-        except:
+        except Exception:
             # TODO: handle the failures
             pass
 
@@ -53,7 +59,7 @@ class PaymentMultiplexerService(BaseService):
                 backend_name = await self.get_payment_backend_from_fa(
                     payee_fa_list[i] or ""
                 )
-            except:
+            except Exception:
                 # TODO : handle the failures
                 pass
             await PaymentListItem.insert(
@@ -63,4 +69,74 @@ class PaymentMultiplexerService(BaseService):
     async def disbursement_status(
         self, status_request: DisburseTxnStatusRequest
     ) -> DisburseTxnStatusResponse:
-        pass
+        if (
+            status_request.txnstatus_request.attribute_type
+            == TxnStatusAttributeTypeEnum.reference_id_list
+        ):
+            # TODO: handle ids not present in db
+            ref_ids = status_request.txnstatus_request.attribute_value
+            if not isinstance(ref_ids, list):
+                raise BadRequestError(
+                    "GPB-PMS-350", "attribute_value is supposed to be a list."
+                )
+            payment_list = await PaymentListItem.get_by_request_ids(ref_ids)
+            return DisburseTxnStatusResponse(
+                transaction_id=status_request.transaction_id,
+                correlation_id=str(uuid.uuid4()),
+                txnstatus_response=SingleDisburseTxnStatusResponse(
+                    txn_type="disburse",
+                    txn_status=[
+                        SingleDisburseResponse(
+                            reference_id=payment_item.request_id,
+                            timestamp=payment_item.updated_at,
+                            status=payment_item.status,
+                            status_reason_code=payment_item.error_code,
+                            status_reason_message=payment_item.error_msg,
+                            amount=payment_item.amount,
+                            # TODO:
+                            # payer_fa = payment_item.from_fa
+                            payee_fa=payment_item.to_fa,
+                            currency_code=payment_item.currency,
+                        )
+                        for payment_item in payment_list
+                    ],
+                ),
+            )
+        elif (
+            status_request.txnstatus_request.attribute_type
+            == TxnStatusAttributeTypeEnum.transaction_id
+        ):
+            # TODO: handle ids not present in db
+            txn_id = status_request.txnstatus_request.attribute_value
+            if not isinstance(ref_ids, str):
+                raise BadRequestError(
+                    "GPB-PMS-350", "attribute_value is supposed to be a string."
+                )
+            payment_list = await PaymentListItem.get_by_batch_id(txn_id)
+            return DisburseTxnStatusResponse(
+                transaction_id=status_request.transaction_id,
+                correlation_id=str(uuid.uuid4()),
+                txnstatus_response=SingleDisburseTxnStatusResponse(
+                    txn_type="disburse",
+                    txn_status=DisburseResponse(
+                        transaction_id=txn_id,
+                        disbursements_status=[
+                            SingleDisburseResponse(
+                                reference_id=payment_item.request_id,
+                                timestamp=payment_item.updated_at,
+                                status=payment_item.status,
+                                status_reason_code=payment_item.error_code,
+                                status_reason_message=payment_item.error_msg,
+                                amount=payment_item.amount,
+                                # TODO:
+                                # payer_fa = payment_item.from_fa
+                                payee_fa=payment_item.to_fa,
+                                currency_code=payment_item.currency,
+                            )
+                            for payment_item in payment_list
+                        ],
+                    ),
+                ),
+            )
+
+        raise NotImplementedError()
