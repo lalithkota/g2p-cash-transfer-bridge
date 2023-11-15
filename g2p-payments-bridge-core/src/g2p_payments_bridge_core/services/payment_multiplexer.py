@@ -41,7 +41,6 @@ class PaymentMultiplexerService(BaseService):
         return None
 
     async def make_disbursements(self, disburse_request: DisburseRequest):
-        # TODO:
         payee_fa_list = []
         try:
             payee_fa_list = await self.id_translate_service.translate(
@@ -53,7 +52,7 @@ class PaymentMultiplexerService(BaseService):
         except Exception:
             # TODO: handle the failures
             pass
-
+        # TODO : we want to make backend name configurable if true then all this or of false then None
         for i, disbursement in enumerate(disburse_request.disbursements):
             try:
                 backend_name = await self.get_payment_backend_from_fa(
