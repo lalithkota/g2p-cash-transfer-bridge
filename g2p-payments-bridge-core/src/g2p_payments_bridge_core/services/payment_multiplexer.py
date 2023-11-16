@@ -1,98 +1,38 @@
-import asyncio
 import logging
 import re
 import uuid
-from typing import Dict, List
 
 from openg2p_fastapi_common.errors.http_exceptions import BadRequestError
 from openg2p_fastapi_common.service import BaseService
-from pydantic import BaseModel
+
+from g2p_payments_bridge_core.models.orm.payment_list import PaymentListItem
 
 from ..config import Settings
 from ..models.disburse import (
     DisburseRequest,
+    DisburseResponse,
     DisburseTxnStatusRequest,
     DisburseTxnStatusResponse,
-    SingleDisburseRequest,
     SingleDisburseResponse,
     SingleDisburseTxnStatusResponse,
     TxnStatusAttributeTypeEnum,
 )
-from .payment_backend import BasePaymentBackendService
+from .id_translate_service import IdTranslateService
 
 _config = Settings.get_config()
 _logger = logging.getLogger(__name__)
 
 
-class TransactionQueueItem(BaseModel):
-    txn_id: str
-    chunk_txn_id: str
-    backend_name: str
-
-
 class PaymentMultiplexerService(BaseService):
-    """
-    The main goal of this multiplexer service is to
-    split a transaction containing multiple payments
-    into n different chunks of transactions, one for
-    each payment backend type (example: mpesa, bank transfer, etc)
-
-    And then each chunk is sent to the respective
-    payment backend service.
-
-    The payment backend service is responsible for its
-    own disbursement and status queries fetching and
-    maintenance of these chunks.
-    """
-
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.transaction_queue: Dict[str, List[TransactionQueueItem]] = {}
-        """
-        The transaction queue dictionary looks like this
-        {
-            "root_txn_id_0": [
-                {
-                    "txn_id": "root_txn_id_0",
-                    "chunk_txn_id": "0_0",
-                    "backend_name": "abc1",
-                }
-            ],
-            "root_txn_id_1": [
-                {
-                    "txn_id": "root_txn_id_1",
-                    "chunk_txn_id": "1_0",
-                    "backend_name": "abc1",
-                },
-                {
-                    "txn_id": "root_txn_id_1",
-                    "chunk_txn_id": "1_1",
-                    "backend_name": "abc2",
-                }
-            ]
-        }
-        """
-        self.reference_ids_list: Dict[str, TransactionQueueItem] = {}
-        """
-        The reference ids list looks like this
-        {
-            "ref_id_0_0_0": {
-                "txn_id": "0",
-                "chunk_txn_id": "0_0",
-                "backend_name": "abc1"
-            }
-            "ref_id_1_0_1": {
-                "txn_id": "1",
-                "chunk_txn_id": "1_0",
-                "backend_name": "abc1"
-            },
-            "ref_id_1_1_1": {
-                "txn_id": "1",
-                "chunk_txn_id": "1_1",
-                "backend_name": "abc2"
-            }
-        }
-        """
+        self._id_translate_service = IdTranslateService.get_component()
+
+    @property
+    def id_translate_service(self):
+        if not self._id_translate_service:
+            self._id_translate_service = IdTranslateService.get_component()
+        return self._id_translate_service
 
     async def get_payment_backend_from_fa(self, fa: str):
         for mapping in _config.multiplex_fa_backend_mapping:
@@ -100,60 +40,30 @@ class PaymentMultiplexerService(BaseService):
                 return mapping.name
         return None
 
-    async def get_payerfa_from_payeefa(self, payee_fa: str):
-        for mapping in _config.multiplex_payerfa_payeefa_mapping:
-            if re.search(mapping.regex, payee_fa):
-                return mapping.payer_fa
-        return None
-
     async def make_disbursements(self, disburse_request: DisburseRequest):
-        for disbursement in disburse_request.disbursements:
-            if not disbursement.payer_fa:
-                disbursement.payer_fa = await self.get_payerfa_from_payeefa(
+        payee_fa_list = []
+        try:
+            payee_fa_list = await self.id_translate_service.translate(
+                [
                     disbursement.payee_fa
-                )
-        # TODO: Split into chunks based on different criteria. Based on bigger GPB architecture.
-        # For now just matching based on the result of regex match of the get_payment_backend_from_fa method
-        payment_batch_by_backend_name: Dict[str, List[SingleDisburseRequest]] = {}
-        for disbursement in disburse_request.disbursements:
-            backend_name = await self.get_payment_backend_from_fa(disbursement.payee_fa)
-            if backend_name not in payment_batch_by_backend_name:
-                payment_batch_by_backend_name[backend_name] = [
-                    disbursement,
+                    for disbursement in disburse_request.disbursements
                 ]
-            else:
-                payment_batch_by_backend_name[backend_name].append(disbursement)
-
-        self.transaction_queue[disburse_request.transaction_id] = []
-        for backend_name, disbursements in payment_batch_by_backend_name.items():
-            chunk_txn_id = str(uuid.uuid4())
-            txn_queue_item = TransactionQueueItem(
-                txn_id=disburse_request.transaction_id,
-                chunk_txn_id=chunk_txn_id,
-                backend_name=backend_name,
             )
-            self.transaction_queue[disburse_request.transaction_id].append(
-                txn_queue_item
-            )
-            self.reference_ids_list.update(
-                {dis.reference_id: txn_queue_item for dis in disbursements}
-            )
-            payment_backend_service = BasePaymentBackendService.get_component(
-                name=backend_name
-            )
-            if payment_backend_service:
-                # TODO: Change this
-                asyncio.create_task(
-                    payment_backend_service.disburse(
-                        DisburseRequest(
-                            transaction_id=chunk_txn_id, disbursements=disbursements
-                        )
-                    )
+        except Exception:
+            # TODO: handle the failures
+            pass
+        # TODO : we want to make backend name configurable if true then all this or of false then None
+        for i, disbursement in enumerate(disburse_request.disbursements):
+            try:
+                backend_name = await self.get_payment_backend_from_fa(
+                    payee_fa_list[i] or ""
                 )
-            else:
-                _logger.error(
-                    "Didnt find any payment backend implementation for the given name"
-                )
+            except Exception:
+                # TODO : handle the failures
+                pass
+            await PaymentListItem.insert(
+                disburse_request.transaction_id, disbursement, backend_name=backend_name
+            )
 
     async def disbursement_status(
         self, status_request: DisburseTxnStatusRequest
@@ -162,50 +72,70 @@ class PaymentMultiplexerService(BaseService):
             status_request.txnstatus_request.attribute_type
             == TxnStatusAttributeTypeEnum.reference_id_list
         ):
+            # TODO: handle ids not present in db
             ref_ids = status_request.txnstatus_request.attribute_value
             if not isinstance(ref_ids, list):
                 raise BadRequestError(
                     "GPB-PMS-350", "attribute_value is supposed to be a list."
                 )
-            response = DisburseTxnStatusResponse(
+            payment_list = await PaymentListItem.get_by_request_ids(ref_ids)
+            return DisburseTxnStatusResponse(
                 transaction_id=status_request.transaction_id,
                 correlation_id=str(uuid.uuid4()),
                 txnstatus_response=SingleDisburseTxnStatusResponse(
                     txn_type="disburse",
-                    txn_status=[None for _ in range(len(ref_ids))],
+                    txn_status=[
+                        SingleDisburseResponse(
+                            reference_id=payment_item.request_id,
+                            timestamp=payment_item.updated_at,
+                            status=payment_item.status,
+                            status_reason_code=payment_item.error_code,
+                            status_reason_message=payment_item.error_msg,
+                            amount=payment_item.amount,
+                            # TODO:
+                            # payer_fa = payment_item.from_fa
+                            payee_fa=payment_item.to_fa,
+                            currency_code=payment_item.currency,
+                        )
+                        for payment_item in payment_list
+                    ],
                 ),
             )
-            backend_to_refs = {}
-            for ref in ref_ids:
-                ref_txn = self.reference_ids_list.get(ref, None)
-                if not ref_txn:
-                    continue
-                backend_name = ref_txn.backend_name
-                if backend_name not in backend_to_refs:
-                    backend_to_refs[backend_name] = [
-                        ref,
-                    ]
-                else:
-                    backend_to_refs[backend_name].append(ref)
-            all_chunk_responses: List[SingleDisburseResponse] = []
-            for backend_name in backend_to_refs:
-                payment_backend_service = BasePaymentBackendService.get_component(
-                    name=backend_name
+        elif (
+            status_request.txnstatus_request.attribute_type
+            == TxnStatusAttributeTypeEnum.transaction_id
+        ):
+            # TODO: handle ids not present in db
+            txn_id = status_request.txnstatus_request.attribute_value
+            if not isinstance(ref_ids, str):
+                raise BadRequestError(
+                    "GPB-PMS-350", "attribute_value is supposed to be a string."
                 )
-                if not payment_backend_service:
-                    _logger.error(
-                        "Didnt find any payment backend implementation for the given name"
-                    )
-                    continue
-                all_chunk_responses += (
-                    await payment_backend_service.disburse_status_by_ref_ids(
-                        backend_to_refs[backend_name]
-                    )
-                )
-            for i, ref in enumerate(ref_ids):
-                for each_chunk in all_chunk_responses:
-                    if each_chunk.reference_id == ref:
-                        response.txnstatus_response.txn_status[i] = each_chunk
-                        break
-            return response
+            payment_list = await PaymentListItem.get_by_batch_id(txn_id)
+            return DisburseTxnStatusResponse(
+                transaction_id=status_request.transaction_id,
+                correlation_id=str(uuid.uuid4()),
+                txnstatus_response=SingleDisburseTxnStatusResponse(
+                    txn_type="disburse",
+                    txn_status=DisburseResponse(
+                        transaction_id=txn_id,
+                        disbursements_status=[
+                            SingleDisburseResponse(
+                                reference_id=payment_item.request_id,
+                                timestamp=payment_item.updated_at,
+                                status=payment_item.status,
+                                status_reason_code=payment_item.error_code,
+                                status_reason_message=payment_item.error_msg,
+                                amount=payment_item.amount,
+                                # TODO:
+                                # payer_fa = payment_item.from_fa
+                                payee_fa=payment_item.to_fa,
+                                currency_code=payment_item.currency,
+                            )
+                            for payment_item in payment_list
+                        ],
+                    ),
+                ),
+            )
+
         raise NotImplementedError()

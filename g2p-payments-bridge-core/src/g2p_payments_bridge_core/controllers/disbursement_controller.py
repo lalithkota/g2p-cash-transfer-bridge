@@ -13,7 +13,6 @@ from ..models.disburse import (
     SingleDisburseResponse,
 )
 from ..models.msg_header import MsgResponseHeader, MsgStatusEnum
-from ..services.id_translate_service import IdTranslateService
 from ..services.payment_multiplexer import PaymentMultiplexerService
 
 _config = Settings.get_config()
@@ -22,8 +21,6 @@ _config = Settings.get_config()
 class DisbursementController(BaseController):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
-        self._id_translate_service = IdTranslateService.get_component()
         self.payment_multiplexer = PaymentMultiplexerService.get_component()
 
         self.router.add_api_route(
@@ -39,12 +36,6 @@ class DisbursementController(BaseController):
             methods=["POST"],
         )
 
-    @property
-    def id_translate_service(self):
-        if not self._id_translate_service:
-            self._id_translate_service = IdTranslateService.get_component()
-        return self._id_translate_service
-
     async def disburse_sync_disburse(self, request: DisburseHttpRequest):
         # Perform any extra validations here
         if not request.message.transaction_id:
@@ -52,12 +43,6 @@ class DisbursementController(BaseController):
 
         async def process_disbursement():
             disburse_txn = request.message.model_copy()
-            if _config.enable_id_translation:
-                payee_fa_responses = await self.id_translate_service.translate(
-                    [dis.payee_fa for dis in disburse_txn.disbursements]
-                )
-                for i, dis in enumerate(disburse_txn.disbursements):
-                    dis.payee_fa = payee_fa_responses[i]
             await self.payment_multiplexer.make_disbursements(disburse_txn)
 
         asyncio.create_task(process_disbursement())

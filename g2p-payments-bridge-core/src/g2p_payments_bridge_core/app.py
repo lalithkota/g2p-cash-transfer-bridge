@@ -1,6 +1,9 @@
 # ruff: noqa: E402
 
+import asyncio
+
 from .config import Settings
+from .models.orm.payment_list import PaymentListItem
 
 _config = Settings.get_config()
 
@@ -16,3 +19,11 @@ class Initializer(Initializer):
         # Initialize all Services, Controllers, any utils here.
         PaymentMultiplexerService()
         DisbursementController().post_init()
+
+    def migrate_database(self, args):
+        super().migrate_database(args)
+
+        async def migrate():
+            await PaymentListItem.create_migrate()
+
+        asyncio.run(migrate())

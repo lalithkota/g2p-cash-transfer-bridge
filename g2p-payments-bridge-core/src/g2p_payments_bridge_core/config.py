@@ -54,6 +54,7 @@ class Settings(Settings):
     ***********************************
     """
     openapi_version: str = "0.1.0"
+    db_dbname: str = "gpbdb"
 
     response_sender_id: str = "g2p.payments.bridge.openg2p"
 
