@@ -14,6 +14,7 @@ from g2p_payments_bridge_core.models.disburse import (
 )
 from g2p_payments_bridge_core.models.msg_header import MsgStatusEnum
 from g2p_payments_bridge_core.models.orm.payment_list import PaymentListItem
+from g2p_payments_bridge_core.services.id_translate_service import IdTranslateService
 from openg2p_fastapi_common.config import Settings as BaseSettings
 from openg2p_fastapi_common.context import dbengine
 from openg2p_fastapi_common.service import BaseService
@@ -48,6 +49,7 @@ class Settings(BaseSettings):
     dsbmt_loop_interval_secs: int = 10
     dsbmt_loop_filter_backend_name: bool = True
     dsbmt_loop_filter_status: List[str] = ["rcvd", "fail"]
+    translate_id_to_fa: bool = True
 
 
 _config = Settings.get_config()
@@ -63,6 +65,14 @@ class ReferenceIdStatus(BaseModel):
 class SimpleMpesaPaymentBackendService(BaseService):
     def __init__(self, name="", **kwargs):
         super().__init__(name if name else _config.payment_backend_name, **kwargs)
+
+        self._id_translate_service = IdTranslateService.get_component()
+
+    @property
+    def id_translate_service(self):
+        if not self._id_translate_service:
+            self._id_translate_service = IdTranslateService.get_component()
+        return self._id_translate_service
 
     def post_init(self):
         asyncio.create_task(self.disburse_loop())
@@ -143,12 +153,17 @@ class SimpleMpesaPaymentBackendService(BaseService):
             return
 
         for payment in payments:
+            payee_acc_no = ""
+            if _config.translate_id_to_fa:
+                payee_acc_no = self.id_translate_service.translate(payment.to_fa)
+            else:
+                payee_acc_no = payment.to_fa
             headers = {
                 "Authorization": f"Bearer {auth_token}",
             }
             data = {
                 "amount": int(float(payment.amount)),
-                "accountNo": await self.get_account_no_from_payee_fa(payment.to_fa),
+                "accountNo": await self.get_account_no_from_payee_fa(payee_acc_no),
                 "customerType": _config.customer_type,
             }
             try:

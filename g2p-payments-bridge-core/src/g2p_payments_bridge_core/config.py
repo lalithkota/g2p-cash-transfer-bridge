@@ -57,8 +57,7 @@ class Settings(Settings):
     db_dbname: str = "gpbdb"
 
     response_sender_id: str = "g2p.payments.bridge.openg2p"
-
-    enable_id_translation: bool = True
+    get_backend_name_from_translate: bool = True
 
     # TODO: Convert this to ORM Model rather than config
     multiplex_fa_backend_mapping: List[FaBackendMapping] = []
