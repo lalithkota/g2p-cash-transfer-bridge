@@ -24,10 +24,12 @@ class PaymentListItem(BaseORMModelWithTimes):
     to_fa: Mapped[str] = mapped_column(String())
     amount: Mapped[str] = mapped_column(String())
     currency: Mapped[str] = mapped_column(String())
-    status: Mapped[MsgStatusEnum] = mapped_column(Enum(MsgStatusEnum))
+    status: Mapped[MsgStatusEnum] = mapped_column(
+        Enum(MsgStatusEnum, native_enum=False)
+    )
     file: Mapped[Optional[str]] = mapped_column(String())
     error_code: Mapped[Optional[SingleDisburseStatusEnum]] = mapped_column(
-        Enum(SingleDisburseStatusEnum)
+        Enum(SingleDisburseStatusEnum, native_enum=False)
     )
     error_msg: Mapped[Optional[str]] = mapped_column(String())
     backend_name: Mapped[Optional[str]] = mapped_column(String())
