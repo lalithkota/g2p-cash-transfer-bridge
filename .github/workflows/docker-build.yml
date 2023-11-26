@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NAMESPACE: ${{ secrets.docker_hub_organisation }}
-      SERVICE_NAME: g2p-payments-bridge
+      SERVICE_NAME: g2p-cash-transfer-bridge
     steps:
       - uses: actions/checkout@v3
       - name: Docker build and push

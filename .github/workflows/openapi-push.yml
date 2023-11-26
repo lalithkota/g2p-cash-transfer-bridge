@@ -18,7 +18,12 @@ jobs:
         with:
           python-version: "3.10"
       - name: Install app
-        run: python -m pip install ./g2p-payments-bridge-core
+        run: |
+          python -m pip install git+https://github.com/openg2p/openg2p-fastapi-common.git@develop\#egg=openg2p-fastapi-common\&subdirectory=openg2p-fastapi-common
+          python -m pip install git+https://github.com/openg2p/openg2p-fastapi-common.git@develop\#egg=openg2p-fastapi-auth\&subdirectory=openg2p-fastapi-auth
+          python -m pip install git+https://github.com/openg2p/openg2p-fastapi-common.git@develop\#egg=openg2p-common-g2pconnect-id-mapper\&subdirectory=openg2p-common-g2pconnect-id-mapper
+          python -m pip install ./g2p-cash-transfer-bridge-core
+          python -m pip install ./g2p-cash-transfer-bridge-api
       - name: Generate openapi json
         run: |
           mkdir -p api-docs/generated

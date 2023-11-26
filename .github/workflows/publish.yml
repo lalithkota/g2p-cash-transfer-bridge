@@ -15,31 +15,24 @@ jobs:
         python-version: "3.10"
     - name: Install build dependencies
       run: pip install build
-    - name: Build distribution g2p-payments-bridge-core
-      run: python -m build ./g2p-payments-bridge-core
+    - name: Build distribution g2p-cash-transfer-bridge-core
+      run: python -m build ./g2p-cash-transfer-bridge-core
     - name: Publish
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        packages-dir: g2p-payments-bridge-core/dist
+        packages-dir: g2p-cash-transfer-bridge-core/dist
         password: ${{ secrets.PYPI_API_TOKEN }}
-    - name: Build distribution gpb-translate-id-fa
-      run: python -m build ./gpb-translate-id-fa
-    - name: Publish gpb-translate-id-fa
+    - name: Build distribution g2p-cash-transfer-bridge-api
+      run: python -m build ./g2p-cash-transfer-bridge-api
+    - name: Publish
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        packages-dir: gpb-translate-id-fa/dist
+        packages-dir: g2p-cash-transfer-bridge-api/dist
         password: ${{ secrets.PYPI_API_TOKEN }}
-    - name: Build distribution gpb-simple-mpesa-payment-backend
-      run: python -m build ./gpb-simple-mpesa-payment-backend
-    - name: Publish gpb-simple-mpesa-payment-backend
+    - name: Build distribution gctb-translate-id-fa
+      run: python -m build ./gctb-translate-id-fa
+    - name: Publish gctb-translate-id-fa
       uses: pypa/gh-action-pypi-publish@release/v1
       with:
-        packages-dir: gpb-simple-mpesa-payment-backend/dist
-        password: ${{ secrets.PYPI_API_TOKEN }}
-    - name: Build distribution gpb-mojaloop-sdk-payment-backend
-      run: python -m build ./gpb-mojaloop-sdk-payment-backend
-    - name: Publish gpb-mojaloop-sdk-payment-backend
-      uses: pypa/gh-action-pypi-publish@release/v1
-      with:
-        packages-dir: gpb-mojaloop-sdk-payment-backend/dist
+        packages-dir: gctb-translate-id-fa/dist
         password: ${{ secrets.PYPI_API_TOKEN }}
