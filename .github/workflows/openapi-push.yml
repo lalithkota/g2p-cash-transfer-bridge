@@ -24,6 +24,7 @@ jobs:
           python -m pip install git+https://github.com/openg2p/openg2p-fastapi-common.git@develop\#egg=openg2p-common-g2pconnect-id-mapper\&subdirectory=openg2p-common-g2pconnect-id-mapper
           python -m pip install ./g2p-cash-transfer-bridge-core
           python -m pip install ./g2p-cash-transfer-bridge-api
+          python -m pip install ./gctb-translate-id-fa
       - name: Generate openapi json
         run: |
           mkdir -p api-docs/generated

@@ -52,6 +52,7 @@ class Settings(BaseSettings):
     payer_id_type: str = "ACCOUNT_ID"
     payer_id_value: str = "1212121212"
     payee_id_type: str = "ACCOUNT_ID"
+    payer_display_name: str = "Government Treasury Bank"
     transfer_note: str = "GCTB benefit transfer"
     translate_id_to_fa: bool = True
 
@@ -153,6 +154,7 @@ class MojaloopSdkPaymentBackendService(BaseService):
                 "from": {
                     "idType": _config.payer_id_type,
                     "idValue": _config.payer_id_value,
+                    "displayName": _config.payer_display_name,
                 },
                 "to": {
                     "idType": _config.payee_id_type,
