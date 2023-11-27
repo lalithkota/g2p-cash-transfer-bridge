@@ -1,1 +1,0 @@
-from .g2p_connect_id_translate import G2PConnectIdTranslateService

@@ -10,7 +10,8 @@ jobs:
     runs-on: ubuntu-latest
     env:
       NAMESPACE: ${{ secrets.docker_hub_organisation }}
-      SERVICE_NAME: g2p-payments-bridge
+      SERVICE_NAME: g2p-cash-transfer-bridge
+      PAYMENT_BACKEND_SERVICE_NAME: gctb-payment-backend
     steps:
       - uses: actions/checkout@v3
       - name: Docker build and push
@@ -23,14 +24,17 @@ jobs:
           fi
 
           IMAGE_ID=$NAMESPACE/$SERVICE_NAME
+          PAYMENT_BACKEND_IMAGE_ID=$NAMESPACE/$PAYMENT_BACKEND_SERVICE_NAME
 
           # Change all uppercase to lowercase
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          PAYMENT_BACKEND_IMAGE_ID=$(echo $PAYMENT_BACKEND_IMAGE_ID | tr '[A-Z]' '[a-z]')
           VERSION=$BRANCH_NAME
           if [[ $BRANCH_NAME == master || $BRANCH_NAME == main ]]; then
             VERSION=develop
           fi
           echo IMAGE_ID=$IMAGE_ID
+          echo PAYMENT_BACKEND_IMAGE_ID=$PAYMENT_BACKEND_IMAGE_ID
           echo VERSION=$VERSION
 
           docker build . \
@@ -38,3 +42,9 @@ jobs:
             --tag $IMAGE_ID:$VERSION
 
           docker push $IMAGE_ID:$VERSION
+
+          docker build . \
+            --file payment-backend.Dockerfile \
+            --tag $PAYMENT_BACKEND_IMAGE_ID:$VERSION
+
+          docker push $PAYMENT_BACKEND_IMAGE_ID:$VERSION

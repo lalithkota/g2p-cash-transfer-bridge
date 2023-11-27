@@ -7,10 +7,10 @@ github_ci_precommit: true
 github_ci_pypi_publish: true
 github_ci_tests: true
 github_ci_tests_codecov: true
-module_name: g2p_payments_bridge
+module_name: g2p_cash_transfer_bridge
 org_name: OpenG2P
 org_slug: OpenG2P
-package_name: g2p-payments-bridge
-repo_name: G2P Payments Bridge
-repo_slug: g2p-payments-bridge
+package_name: g2p-cash-transfer-bridge
+repo_name: G2P Cash Transfer Bridge
+repo_slug: g2p-cash-transfer-bridge
 
