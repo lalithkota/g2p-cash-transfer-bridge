@@ -44,7 +44,7 @@ jobs:
           docker push $IMAGE_ID:$VERSION
 
           docker build . \
-            --file Dockerfile \
+            --file payment-backend.Dockerfile \
             --tag $PAYMENT_BACKEND_IMAGE_ID:$VERSION
 
           docker push $PAYMENT_BACKEND_IMAGE_ID:$VERSION
