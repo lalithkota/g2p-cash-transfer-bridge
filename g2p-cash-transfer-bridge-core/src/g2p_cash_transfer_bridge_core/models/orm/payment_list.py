@@ -88,7 +88,9 @@ class PaymentListItem(BaseORMModelWithTimes):
         async_session_maker = async_sessionmaker(dbengine.get())
         async with async_session_maker() as session:
             stmt = (
-                select(cls).where(cls.request_id in request_ids).order_by(cls.id.asc())
+                select(cls)
+                .where(cls.request_id.in_(request_ids))
+                .order_by(cls.id.asc())
             )
             result = await session.execute(stmt)
 
