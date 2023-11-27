@@ -1,6 +1,8 @@
 from typing import List
 
-from g2p_cash_transfer_bridge_core.services import IdTranslateService
+from g2p_cash_transfer_bridge_core.services.id_translate_service import (
+    IdTranslateService,
+)
 from openg2p_common_g2pconnect_id_mapper.models.common import MapperValue
 from openg2p_common_g2pconnect_id_mapper.service.resolve import (
     MapperResolveService as IDMapperResolveService,

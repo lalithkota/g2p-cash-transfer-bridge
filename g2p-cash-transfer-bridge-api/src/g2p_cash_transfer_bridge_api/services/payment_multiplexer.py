@@ -15,8 +15,10 @@ from g2p_cash_transfer_bridge_core.models.orm.payment_list import PaymentListIte
 from g2p_cash_transfer_bridge_core.services.id_translate_service import (
     IdTranslateService,
 )
+from g2p_cash_transfer_bridge_core.services.payment_multiplexer import (
+    PaymentMultiplexerService as CorePaymentMultiplexerService,
+)
 from openg2p_fastapi_common.errors.http_exceptions import BadRequestError
-from openg2p_fastapi_common.service import BaseService
 
 from ..config import Settings
 
@@ -24,7 +26,7 @@ _config = Settings.get_config()
 _logger = logging.getLogger(__name__)
 
 
-class PaymentMultiplexerService(BaseService):
+class PaymentMultiplexerService(CorePaymentMultiplexerService):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self._id_translate_service = IdTranslateService.get_component()

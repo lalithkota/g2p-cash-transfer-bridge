@@ -39,15 +39,19 @@ class Settings(BaseSettings):
     ***********************************
     """
     openapi_version: str = "0.1.0"
-
     payment_backend_name: str = "mojaloop"
     db_dbname: str = "gctbdb"
 
+    dsbmt_loop_interval_secs: int = 10
+    dsbmt_loop_filter_backend_name: bool = True
+    dsbmt_loop_filter_status: List[str] = ["rcvd", "fail"]
+    translate_id_to_fa: bool = True
+
     api_timeout: int = 10
-    transfers_url: str = ""
-    payer_id_type: str = ""
-    payer_id_value: str = ""
-    payee_id_type: str = ""
+    transfers_url: str = "https://bank1.mec.openg2p.net/api/outbound/transfers"
+    payer_id_type: str = "ACCOUNT_ID"
+    payer_id_value: str = "1212121212"
+    payee_id_type: str = "ACCOUNT_ID"
     transfer_note: str = "GCTB benefit transfer"
     translate_id_to_fa: bool = True
 
@@ -131,7 +135,13 @@ class MojaloopSdkPaymentBackendService(BaseService):
         for payment in payments:
             payee_acc_no = ""
             if _config.translate_id_to_fa:
-                payee_acc_no = self.id_translate_service.translate(payment.to_fa)
+                payee_acc_no = await self.id_translate_service.translate(
+                    [
+                        payment.to_fa,
+                    ]
+                )
+                if payee_acc_no:
+                    payee_acc_no = payee_acc_no[0]
             else:
                 payee_acc_no = payment.to_fa
             data = {
@@ -188,7 +198,8 @@ from openg2p_fastapi_common.app import Initializer
 
 class PaymentBackendInitializer(Initializer):
     def initialize(self, **kwargs):
-        MojaloopSdkPaymentBackendService()
+        super().initialize(**kwargs)
+        self.payment_backend = MojaloopSdkPaymentBackendService()
 
     @asynccontextmanager
     async def fastapi_app_lifespan(self, app: FastAPI):

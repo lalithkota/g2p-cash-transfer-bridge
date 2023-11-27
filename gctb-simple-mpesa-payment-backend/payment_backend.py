@@ -42,16 +42,17 @@ class Settings(BaseSettings):
     payment_backend_name: str = "mpesa"
     db_dbname: str = "gctbdb"
 
+    dsbmt_loop_interval_secs: int = 10
+    dsbmt_loop_filter_backend_name: bool = True
+    dsbmt_loop_filter_status: List[str] = ["rcvd", "fail"]
+    translate_id_to_fa: bool = True
+
     agent_email: str = ""
     agent_password: str = ""
     auth_url: str = ""
     payment_url: str = ""
     api_timeout: int = 10
     customer_type: str = "subscriber"
-    dsbmt_loop_interval_secs: int = 10
-    dsbmt_loop_filter_backend_name: bool = True
-    dsbmt_loop_filter_status: List[str] = ["rcvd", "fail"]
-    translate_id_to_fa: bool = True
 
 
 _config = Settings.get_config()
@@ -157,7 +158,13 @@ class SimpleMpesaPaymentBackendService(BaseService):
         for payment in payments:
             payee_acc_no = ""
             if _config.translate_id_to_fa:
-                payee_acc_no = self.id_translate_service.translate(payment.to_fa)
+                payee_acc_no = await self.id_translate_service.translate(
+                    [
+                        payment.to_fa,
+                    ]
+                )
+                if payee_acc_no:
+                    payee_acc_no = payee_acc_no[0]
             else:
                 payee_acc_no = payment.to_fa
             headers = {
