@@ -206,6 +206,7 @@ from openg2p_common_g2pconnect_id_mapper.app import (
     Initializer as G2pConnectMapperInitializer,
 )
 from openg2p_fastapi_common.app import Initializer
+from openg2p_fastapi_common.ping import PingInitializer
 
 
 class PaymentBackendInitializer(Initializer):
@@ -224,4 +225,5 @@ if __name__ == "__main__":
     main_init = PaymentBackendInitializer()
     G2pConnectMapperInitializer()
     TranslateIdInitializer()
+    PingInitializer()
     main_init.main()
