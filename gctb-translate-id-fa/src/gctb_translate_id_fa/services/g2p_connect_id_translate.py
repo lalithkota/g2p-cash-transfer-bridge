@@ -21,9 +21,9 @@ class G2PConnectIdTranslateService(IdTranslateService):
             self._id_mapper_service = IDMapperResolveService.get_component()
         return self._id_mapper_service
 
-    async def translate(self, ids: List[str]) -> List[str]:
+    async def translate(self, ids: List[str], max_retries=10) -> List[str]:
         res = await self.id_mapper_service.resolve_request_sync(
-            [MapperValue(id=id) for id in ids]
+            [MapperValue(id=id) for id in ids], max_retries=max_retries
         )
         if not res:
             raise BaseAppException(

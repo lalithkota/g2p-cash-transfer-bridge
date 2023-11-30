@@ -44,10 +44,8 @@ class Settings(Settings):
 
     # TODO: Convert this to ORM Model rather than config
     multiplex_fa_backend_mapping: List[FaBackendMapping] = []
-    multiplex_payerfa_payeefa_mapping: List[PayerFaPayeeFaMapping] = []
 
     @model_validator(mode="after")
     def sort_fa_mappings(self) -> "Settings":
         self.multiplex_fa_backend_mapping.sort(key=lambda x: x.order)
-        self.multiplex_payerfa_payeefa_mapping.sort(key=lambda x: x.order)
         return self

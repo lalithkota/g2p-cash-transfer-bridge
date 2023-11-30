@@ -158,13 +158,17 @@ class SimpleMpesaPaymentBackendService(BaseService):
         for payment in payments:
             payee_acc_no = ""
             if _config.translate_id_to_fa:
-                payee_acc_no = await self.id_translate_service.translate(
-                    [
-                        payment.to_fa,
-                    ]
-                )
-                if payee_acc_no:
-                    payee_acc_no = payee_acc_no[0]
+                try:
+                    payee_acc_no = await self.id_translate_service.translate(
+                        [
+                            payment.to_fa,
+                        ],
+                        max_retries=10,
+                    )
+                    if payee_acc_no:
+                        payee_acc_no = payee_acc_no[0]
+                except Exception:
+                    _logger.exception("Mpesa Payment Failed couldnot get FA from ID")
             else:
                 payee_acc_no = payment.to_fa
             headers = {

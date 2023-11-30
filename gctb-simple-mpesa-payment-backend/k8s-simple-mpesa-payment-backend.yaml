@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gctb-simple-mpesa-payment-backend
+  namespace: gctb
+  labels:
+    app.kubernetes.io/name: gctb-simple-mpesa-payment-backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: gctb-simple-mpesa-payment-backend
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: gctb-simple-mpesa-payment-backend
+    spec:
+      containers:
+        - name: payment-backend
+          image: lalithkota/gctb-payment-backend:develop
+          imagePullPolicy: Always
+          env:
+            - name: GCTB_SIMPLE_MPESA_DB_HOSTNAME
+              value: postgres-postgresql.postgres
+            - name: GCTB_SIMPLE_MPESA_DB_USERNAME
+              value: gctbuser
+            - name: GCTB_SIMPLE_MPESA_DEFAULT_ID_TOKEN_VERIFY_AT_HASH
+              value: 'false'
+            - name: GCTB_SIMPLE_MPESA_OPENAPI_ROOT_PATH
+              value: /g2pCashTransferBridge/simpleMpesa/v1
+            - name: GCTB_ID_TRANSLATE_MAPPER_API_TIMEOUT_SECS
+              value: '1'
+            - name: GCTB_ID_TRANSLATE_MAPPER_RESOLVE_SENDER_URL
+              value: http://gctb-simple-mpesa-payment-backend.gctb/internal/callback/mapper
+            - name: GCTB_ID_TRANSLATE_MAPPER_RESOLVE_URL
+              value: http://mapper.spar/v0.1.0/mapper/resolve
+            - name: GCTB_SIMPLE_MPESA_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: postgres-postgresql
+          ports:
+            - containerPort: 8000
+              name: http
+              protocol: TCP
+          livenessProbe:
+            failureThreshold: 5
+            httpGet:
+              path: /ping
+              port: 8000
+              scheme: HTTP
+            initialDelaySeconds: 15
+            periodSeconds: 60
+            successThreshold: 1
+            timeoutSeconds: 1
+          readinessProbe:
+            failureThreshold: 20
+            httpGet:
+              path: /ping
+              port: 8000
+              scheme: HTTP
+            initialDelaySeconds: 30
+            periodSeconds: 30
+            successThreshold: 1
+            timeoutSeconds: 10
+          volumeMounts:
+            - name: payment-backend-scripts
+              mountPath: /app/payment_backend
+      initContainers:
+        - name: postgres-checker
+          image: jbergknoff/postgresql-client
+          imagePullPolicy: Always
+          command:
+            - sh
+            - '-c'
+            - >-
+              until pg_isready -U $GCTB_SIMPLE_MPESA_DB_USERNAME -h
+              $GCTB_SIMPLE_MPESA_DB_HOSTNAME -p ${GCTB_SIMPLE_MPESA_DB_PORT:-5432} -d
+              ${GCTB_SIMPLE_MPESA_DB_DBNAME:-gctbdb}; do sleep 3; done
+          env:
+            - name: GCTB_SIMPLE_MPESA_DB_HOSTNAME
+              value: postgres-postgresql.postgres
+            - name: GCTB_SIMPLE_MPESA_DB_USERNAME
+              value: gctbuser
+            - name: GCTB_SIMPLE_MPESA_DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  key: password
+                  name: postgres-postgresql
+      volumes:
+        - name: payment-backend-scripts
+          configMap:
+            name: gctb-simple-mpesa-scripts
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gctb-simple-mpesa-payment-backend
+  namespace: gctb
+  labels:
+    app.kubernetes.io/name: gctb-simple-mpesa-payment-backend
+spec:
+  type: ClusterIP
+  selector:
+    app.kubernetes.io/name: gctb-simple-mpesa-payment-backend
+  ports:
+    - name: http
+      port: 80
+      protocol: TCP
+      targetPort: http
