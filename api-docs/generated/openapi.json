@@ -1144,7 +1144,7 @@
             "type": "string",
             "format": "date-time",
             "title": "Message Ts",
-            "default": "2023-11-27T19:22:54.337415"
+            "default": "2023-11-30T06:53:17.875700"
           },
           "action": {
             "type": "string",
@@ -1464,7 +1464,7 @@
             "type": "string",
             "format": "date-time",
             "title": "Timestamp",
-            "default": "2023-11-27T19:22:54.345043"
+            "default": "2023-11-30T06:53:17.883759"
           },
           "status": {
             "$ref": "#/components/schemas/MsgStatusEnum"
