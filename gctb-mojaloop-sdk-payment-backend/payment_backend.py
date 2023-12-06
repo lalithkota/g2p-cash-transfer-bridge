@@ -3,20 +3,15 @@
 
 import asyncio
 import logging
-from contextlib import asynccontextmanager
 from datetime import datetime
 from typing import List
 
 import httpx
-from fastapi import FastAPI
 from g2p_cash_transfer_bridge_core.models.disburse import (
     SingleDisburseStatusEnum,
 )
 from g2p_cash_transfer_bridge_core.models.msg_header import MsgStatusEnum
 from g2p_cash_transfer_bridge_core.models.orm.payment_list import PaymentListItem
-from g2p_cash_transfer_bridge_core.services.id_translate_service import (
-    IdTranslateService,
-)
 from openg2p_fastapi_common.config import Settings as BaseSettings
 from openg2p_fastapi_common.context import dbengine
 from openg2p_fastapi_common.service import BaseService
@@ -56,6 +51,10 @@ class Settings(BaseSettings):
     transfer_note: str = "GCTB benefit transfer"
     translate_id_to_fa: bool = True
 
+    mapper_registry_url: str = (
+        "http://mapper-registry.spar/api/v1/FinancialAddressMapper/search"
+    )
+
 
 _config = Settings.get_config()
 _logger = logging.getLogger("openg2p_fastapi_common.app")
@@ -70,21 +69,13 @@ class ReferenceIdStatus(BaseModel):
 class MojaloopSdkPaymentBackendService(BaseService):
     def __init__(self, name="", **kwargs):
         super().__init__(name if name else _config.payment_backend_name, **kwargs)
-        self._id_translate_service = IdTranslateService.get_component()
-
-    @property
-    def id_translate_service(self):
-        if not self._id_translate_service:
-            self._id_translate_service = IdTranslateService.get_component()
-        return self._id_translate_service
-
-    def post_init(self):
-        asyncio.create_task(self.disburse_loop())
 
     async def disburse_loop(self):
         while True:
             db_response = []
-            async_session_maker = async_sessionmaker(dbengine.get())
+            async_session_maker = async_sessionmaker(
+                dbengine.get(), expire_on_commit=False
+            )
             async with async_session_maker() as session:
                 stmt = select(PaymentListItem)
                 if (
@@ -137,14 +128,7 @@ class MojaloopSdkPaymentBackendService(BaseService):
             payee_acc_no = ""
             if _config.translate_id_to_fa:
                 try:
-                    payee_acc_no = await self.id_translate_service.translate(
-                        [
-                            payment.to_fa,
-                        ],
-                        max_retries=10,
-                    )
-                    if payee_acc_no:
-                        payee_acc_no = payee_acc_no[0]
+                    payee_acc_no = await self.get_fa_from_reg(payment.to_fa)
                 except Exception:
                     _logger.exception("Mojaloop Payment Failed couldnot get FA from ID")
             else:
@@ -158,16 +142,15 @@ class MojaloopSdkPaymentBackendService(BaseService):
                 },
                 "to": {
                     "idType": _config.payee_id_type,
-                    "idValue": await self.get_payee_id_value_from_payee_fa(
-                        payee_acc_no
-                    ),
+                    "idValue": self.get_payee_id_value_from_payee_fa(payee_acc_no),
                 },
-                "currency": payment.currency,
+                "currency": "USD",
                 "amount": float(payment.amount),
                 "note": _config.transfer_note,
                 "transactionType": "TRANSFER",
                 "amountType": "SEND",
             }
+            print(f"data data {data}")
             try:
                 response = httpx.post(
                     _config.transfers_url,
@@ -191,16 +174,26 @@ class MojaloopSdkPaymentBackendService(BaseService):
 
             await session.commit()
 
-    async def get_payee_id_value_from_payee_fa(self, fa: str) -> str:
+    async def get_fa_from_reg(self, id_):
+        res = httpx.post(
+            _config.mapper_registry_url,
+            json={"filters": {"id": {"eq": id_}}, "limit": 1},
+        )
+        res.raise_for_status()
+        resp = res
+        res = res.json()
+        if res:
+            res = res[0]
+        if res and "fa" in res:
+            res = res["fa"]
+        print(f"res res {res} {resp}")
+        return res
+
+    def get_payee_id_value_from_payee_fa(self, fa: str) -> str:
         return fa[fa.find(":") + 1 : fa.rfind("@")]
 
 
-from gctb_translate_id_fa.app import Initializer as TranslateIdInitializer
-from openg2p_common_g2pconnect_id_mapper.app import (
-    Initializer as G2pConnectMapperInitializer,
-)
 from openg2p_fastapi_common.app import Initializer
-from openg2p_fastapi_common.ping import PingInitializer
 
 
 class PaymentBackendInitializer(Initializer):
@@ -208,16 +201,7 @@ class PaymentBackendInitializer(Initializer):
         super().initialize(**kwargs)
         self.payment_backend = MojaloopSdkPaymentBackendService()
 
-    @asynccontextmanager
-    async def fastapi_app_lifespan(self, app: FastAPI):
-        self.payment_backend.post_init()
-        yield
-        await dbengine.get().dispose()
-
 
 if __name__ == "__main__":
     main_init = PaymentBackendInitializer()
-    G2pConnectMapperInitializer()
-    TranslateIdInitializer()
-    PingInitializer()
-    main_init.main()
+    asyncio.run(main_init.payment_backend.disburse_loop())
