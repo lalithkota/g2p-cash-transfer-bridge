@@ -34,6 +34,8 @@ spec:
               value: http://gctb-mojaloop-sdk-payment-backend.gctb/internal/callback/mapper
             - name: GCTB_ID_TRANSLATE_MAPPER_RESOLVE_URL
               value: http://mapper.spar/v0.1.0/mapper/resolve
+            - name: GCTB_ID_TRANSLATE_QUEUE_REDIS_HOST
+              value: gctb-redis-master
             - name: GCTB_MOJALOOP_SDK_TRANSFER_URL
               value: http://ml-simulators-sim-dfsp1-scheme-adapter.ml:4001/transfers
             - name: GCTB_MOJALOOP_SDK_PAYER_ID_VALUE
@@ -91,8 +93,6 @@ spec:
                 secretKeyRef:
                   key: password
                   name: postgres-postgresql
-            - name: GCTB_ID_TRANSLATE_QUEUE_REDIS_HOST
-              value: gctb-redis-master
       volumes:
         - name: payment-backend-scripts
           configMap:
