@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # ruff: noqa: E402
 
-import asyncio
 import logging
-from contextlib import asynccontextmanager
+import time
 from datetime import datetime
 from typing import List
 
@@ -18,12 +17,12 @@ from g2p_cash_transfer_bridge_core.services.id_translate_service import (
     IdTranslateService,
 )
 from openg2p_fastapi_common.config import Settings as BaseSettings
-from openg2p_fastapi_common.context import dbengine
 from openg2p_fastapi_common.service import BaseService
+from openg2p_fastapi_common.utils.ctx_thread import CTXThread
 from pydantic import BaseModel
 from pydantic_settings import SettingsConfigDict
-from sqlalchemy import and_, select
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy import and_, create_engine, select
+from sqlalchemy.orm import Session
 
 
 class Settings(BaseSettings):
@@ -71,6 +70,8 @@ class MojaloopSdkPaymentBackendService(BaseService):
     def __init__(self, name="", **kwargs):
         super().__init__(name if name else _config.payment_backend_name, **kwargs)
         self._id_translate_service = IdTranslateService.get_component()
+        self.disburse_loop_killed = False
+        self.disburse_loop_thread: CTXThread = None
 
     @property
     def id_translate_service(self):
@@ -79,13 +80,14 @@ class MojaloopSdkPaymentBackendService(BaseService):
         return self._id_translate_service
 
     def post_init(self):
-        asyncio.create_task(self.disburse_loop())
+        self.disburse_loop_thread = CTXThread(target=self.disburse_loop)
+        self.disburse_loop_thread.start()
 
-    async def disburse_loop(self):
-        while True:
+    def disburse_loop(self):
+        while not self.disburse_loop_killed:
             db_response = []
-            async_session_maker = async_sessionmaker(dbengine.get())
-            async with async_session_maker() as session:
+            dbengine = create_engine(_config.db_datasource, echo=_config.db_logging)
+            with Session(dbengine, expire_on_commit=False) as session:
                 stmt = select(PaymentListItem)
                 if (
                     _config.dsbmt_loop_filter_backend_name
@@ -117,31 +119,32 @@ class MojaloopSdkPaymentBackendService(BaseService):
                         )
                     )
                 stmt = stmt.order_by(PaymentListItem.id.asc())
-                result = await session.execute(stmt)
+                result = session.execute(stmt)
 
                 db_response = list(result.scalars())
                 if db_response:
                     _logger.info(
                         "GCTB Mojaloop - processing payment from payment list."
                     )
-                    await self.disburse(db_response, session)
+                    self.disburse(db_response, session)
                 else:
                     _logger.info(
                         "GCTB Mojaloop - no records found in payment list table."
                     )
 
-            await asyncio.sleep(_config.dsbmt_loop_interval_secs)
+            time.sleep(_config.dsbmt_loop_interval_secs)
 
-    async def disburse(self, payments: List[PaymentListItem], session: AsyncSession):
+    def disburse(self, payments: List[PaymentListItem], session: Session):
         for payment in payments:
             payee_acc_no = ""
             if _config.translate_id_to_fa:
                 try:
-                    payee_acc_no = await self.id_translate_service.translate(
+                    payee_acc_no = self.id_translate_service.translate_sync(
                         [
                             payment.to_fa,
                         ],
-                        max_retries=10,
+                        loop_sleep=0,
+                        max_retries=100,
                     )
                     if payee_acc_no:
                         payee_acc_no = payee_acc_no[0]
@@ -158,9 +161,7 @@ class MojaloopSdkPaymentBackendService(BaseService):
                 },
                 "to": {
                     "idType": _config.payee_id_type,
-                    "idValue": await self.get_payee_id_value_from_payee_fa(
-                        payee_acc_no
-                    ),
+                    "idValue": self.get_payee_id_value_from_payee_fa(payee_acc_no),
                 },
                 "currency": payment.currency,
                 "amount": float(payment.amount),
@@ -189,9 +190,9 @@ class MojaloopSdkPaymentBackendService(BaseService):
                 payment.error_code = SingleDisburseStatusEnum.rjct_payment_failed
                 payment.error_msg = "Mojaloop Payment Failed with unknown reason"
 
-            await session.commit()
+            session.commit()
 
-    async def get_payee_id_value_from_payee_fa(self, fa: str) -> str:
+    def get_payee_id_value_from_payee_fa(self, fa: str) -> str:
         return fa[fa.find(":") + 1 : fa.rfind("@")]
 
 
@@ -208,11 +209,11 @@ class PaymentBackendInitializer(Initializer):
         super().initialize(**kwargs)
         self.payment_backend = MojaloopSdkPaymentBackendService()
 
-    @asynccontextmanager
-    async def fastapi_app_lifespan(self, app: FastAPI):
+    async def fastapi_app_startup(self, app: FastAPI):
         self.payment_backend.post_init()
-        yield
-        await dbengine.get().dispose()
+
+    async def fastapi_app_shutdown(self, app: FastAPI):
+        self.payment_backend.disburse_loop_killed = True
 
 
 if __name__ == "__main__":
