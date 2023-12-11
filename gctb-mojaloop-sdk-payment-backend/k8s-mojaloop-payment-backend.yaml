@@ -91,6 +91,8 @@ spec:
                 secretKeyRef:
                   key: password
                   name: postgres-postgresql
+            - name: GCTB_ID_TRANSLATE_QUEUE_REDIS_HOST
+              value: gctb-redis-master
       volumes:
         - name: payment-backend-scripts
           configMap:

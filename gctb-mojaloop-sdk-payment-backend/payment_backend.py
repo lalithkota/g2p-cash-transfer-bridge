@@ -40,6 +40,7 @@ class Settings(BaseSettings):
     openapi_version: str = "0.1.0"
     payment_backend_name: str = "mojaloop"
     db_dbname: str = "gctbdb"
+    db_driver: str = "postgresql"
 
     dsbmt_loop_interval_secs: int = 10
     dsbmt_loop_filter_backend_name: bool = True
@@ -208,6 +209,9 @@ class PaymentBackendInitializer(Initializer):
     def initialize(self, **kwargs):
         super().initialize(**kwargs)
         self.payment_backend = MojaloopSdkPaymentBackendService()
+
+    def init_db(self):
+        pass
 
     async def fastapi_app_startup(self, app: FastAPI):
         self.payment_backend.post_init()
