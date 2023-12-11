@@ -1,0 +1,2017 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "G2P Cash Transfer Bridge",
+    "description": "\n    This module implements G2P Connect Disburse APIs.\n    It contains API layer and multiplexer for different payment backends.\n\n    ***********************************\n    Further details goes here\n    ***********************************\n    ",
+    "contact": {
+      "url": "https://www.openg2p.org/",
+      "email": "info@openg2p.org"
+    },
+    "license": {
+      "name": "Mozilla Public License 2.0",
+      "url": "https://www.mozilla.org/en-US/MPL/2.0/"
+    },
+    "version": "0.1.0"
+  },
+  "paths": {
+    "/disburse/sync/disburse": {
+      "post": {
+        "summary": "Disburse Sync Disburse",
+        "operationId": "disburse_sync_disburse_disburse_sync_disburse_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DisburseHttpRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DisburseHttpResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorListResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorListResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorListResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/disburse/sync/txn/status": {
+      "post": {
+        "summary": "Disburse Sync Txn Status",
+        "operationId": "disburse_sync_txn_status_disburse_sync_txn_status_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/DisburseTxnStatusHttpRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/DisburseTxnStatusHttpResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorListResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorListResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorListResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/callback/mapper/on-link": {
+      "post": {
+        "tags": [
+          "callback"
+        ],
+        "summary": "Mapper On Link",
+        "operationId": "mapper_on_link_internal_callback_mapper_on_link_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LinkCallbackHttpRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonResponseMessage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorListResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorListResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorListResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/callback/mapper/on-update": {
+      "post": {
+        "tags": [
+          "callback"
+        ],
+        "summary": "Mapper On Update",
+        "operationId": "mapper_on_update_internal_callback_mapper_on_update_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCallbackHttpRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonResponseMessage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorListResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorListResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorListResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/internal/callback/mapper/on-resolve": {
+      "post": {
+        "tags": [
+          "callback"
+        ],
+        "summary": "Mapper On Resolve",
+        "operationId": "mapper_on_resolve_internal_callback_mapper_on_resolve_post",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ResolveCallbackHttpRequest"
+              }
+            }
+          },
+          "required": true
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CommonResponseMessage"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorListResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorListResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorListResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorListResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ping": {
+      "get": {
+        "tags": [
+          "ping"
+        ],
+        "summary": "Get Ping",
+        "operationId": "get_ping_ping_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          },
+          "401": {
+            "description": "Unauthorized",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorListResponse"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorListResponse"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorListResponse"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "AccountProviderInfo": {
+        "properties": {
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "subcode": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Subcode",
+            "default": ""
+          },
+          "additional_info": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Additional Info",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "required": [
+          "name",
+          "code"
+        ],
+        "title": "AccountProviderInfo"
+      },
+      "Ack": {
+        "type": "string",
+        "enum": [
+          "ACK",
+          "NACK",
+          "ERR"
+        ],
+        "title": "Ack"
+      },
+      "AdditionalInfo": {
+        "properties": {
+          "key": {
+            "type": "string",
+            "title": "Key"
+          },
+          "value": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "number"
+              },
+              {
+                "type": "string"
+              },
+              {
+                "type": "boolean"
+              },
+              {
+                "type": "object"
+              }
+            ],
+            "title": "Value"
+          }
+        },
+        "type": "object",
+        "required": [
+          "key",
+          "value"
+        ],
+        "title": "AdditionalInfo"
+      },
+      "CommonResponse": {
+        "properties": {
+          "ack_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/Ack"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          },
+          "error": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ErrorResponse"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "correlation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correlation Id"
+          }
+        },
+        "type": "object",
+        "required": [
+          "timestamp"
+        ],
+        "title": "CommonResponse"
+      },
+      "CommonResponseMessage": {
+        "properties": {
+          "message": {
+            "$ref": "#/components/schemas/CommonResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message"
+        ],
+        "title": "CommonResponseMessage"
+      },
+      "DisburseHttpRequest": {
+        "properties": {
+          "signature": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature"
+          },
+          "header": {
+            "$ref": "#/components/schemas/MsgHeader"
+          },
+          "message": {
+            "$ref": "#/components/schemas/DisburseRequest"
+          }
+        },
+        "type": "object",
+        "required": [
+          "signature",
+          "header",
+          "message"
+        ],
+        "title": "DisburseHttpRequest"
+      },
+      "DisburseHttpResponse": {
+        "properties": {
+          "signature": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature"
+          },
+          "header": {
+            "$ref": "#/components/schemas/MsgResponseHeader"
+          },
+          "message": {
+            "$ref": "#/components/schemas/DisburseResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "signature",
+          "header",
+          "message"
+        ],
+        "title": "DisburseHttpResponse"
+      },
+      "DisburseRequest": {
+        "properties": {
+          "transaction_id": {
+            "type": "string",
+            "title": "Transaction Id"
+          },
+          "disbursements": {
+            "items": {
+              "$ref": "#/components/schemas/SingleDisburseRequest"
+            },
+            "type": "array",
+            "title": "Disbursements"
+          }
+        },
+        "type": "object",
+        "required": [
+          "transaction_id",
+          "disbursements"
+        ],
+        "title": "DisburseRequest"
+      },
+      "DisburseResponse": {
+        "properties": {
+          "transaction_id": {
+            "type": "string",
+            "title": "Transaction Id"
+          },
+          "disbursements_status": {
+            "items": {
+              "$ref": "#/components/schemas/SingleDisburseResponse"
+            },
+            "type": "array",
+            "title": "Disbursements Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "transaction_id",
+          "disbursements_status"
+        ],
+        "title": "DisburseResponse"
+      },
+      "DisburseTxnStatusHttpRequest": {
+        "properties": {
+          "signature": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature"
+          },
+          "header": {
+            "$ref": "#/components/schemas/MsgHeader"
+          },
+          "message": {
+            "$ref": "#/components/schemas/DisburseTxnStatusRequest"
+          }
+        },
+        "type": "object",
+        "required": [
+          "signature",
+          "header",
+          "message"
+        ],
+        "title": "DisburseTxnStatusHttpRequest"
+      },
+      "DisburseTxnStatusHttpResponse": {
+        "properties": {
+          "signature": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Signature"
+          },
+          "header": {
+            "$ref": "#/components/schemas/MsgResponseHeader"
+          },
+          "message": {
+            "$ref": "#/components/schemas/DisburseTxnStatusResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "signature",
+          "header",
+          "message"
+        ],
+        "title": "DisburseTxnStatusHttpResponse"
+      },
+      "DisburseTxnStatusRequest": {
+        "properties": {
+          "transaction_id": {
+            "type": "string",
+            "title": "Transaction Id"
+          },
+          "txnstatus_request": {
+            "$ref": "#/components/schemas/SingleDisburseTxnStatusRequest"
+          }
+        },
+        "type": "object",
+        "required": [
+          "transaction_id",
+          "txnstatus_request"
+        ],
+        "title": "DisburseTxnStatusRequest"
+      },
+      "DisburseTxnStatusResponse": {
+        "properties": {
+          "transaction_id": {
+            "type": "string",
+            "title": "Transaction Id"
+          },
+          "correlation_id": {
+            "type": "string",
+            "title": "Correlation Id"
+          },
+          "txnstatus_response": {
+            "$ref": "#/components/schemas/SingleDisburseTxnStatusResponse"
+          }
+        },
+        "type": "object",
+        "required": [
+          "transaction_id",
+          "correlation_id",
+          "txnstatus_response"
+        ],
+        "title": "DisburseTxnStatusResponse"
+      },
+      "ErrorListResponse": {
+        "properties": {
+          "errors": {
+            "items": {
+              "$ref": "#/components/schemas/ErrorResponse"
+            },
+            "type": "array",
+            "title": "Errors"
+          }
+        },
+        "type": "object",
+        "required": [
+          "errors"
+        ],
+        "title": "ErrorListResponse"
+      },
+      "ErrorResponse": {
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "Code",
+            "default": ""
+          },
+          "message": {
+            "type": "string",
+            "title": "Message",
+            "default": ""
+          }
+        },
+        "type": "object",
+        "title": "ErrorResponse"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "LinkCallbackHttpRequest": {
+        "properties": {
+          "signature": {
+            "type": "string",
+            "title": "Signature"
+          },
+          "header": {
+            "$ref": "#/components/schemas/MsgCallbackHeader"
+          },
+          "message": {
+            "$ref": "#/components/schemas/LinkCallbackRequest"
+          }
+        },
+        "type": "object",
+        "required": [
+          "signature",
+          "header",
+          "message"
+        ],
+        "title": "LinkCallbackHttpRequest"
+      },
+      "LinkCallbackRequest": {
+        "properties": {
+          "transaction_id": {
+            "type": "string",
+            "title": "Transaction Id"
+          },
+          "correlation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correlation Id",
+            "default": ""
+          },
+          "link_response": {
+            "items": {
+              "$ref": "#/components/schemas/SingleLinkCallbackRequest"
+            },
+            "type": "array",
+            "title": "Link Response"
+          }
+        },
+        "type": "object",
+        "required": [
+          "transaction_id",
+          "link_response"
+        ],
+        "title": "LinkCallbackRequest"
+      },
+      "LinkRequestStatusReasonCode": {
+        "type": "string",
+        "enum": [
+          "rjct.reference_id.invalid",
+          "rjct.reference_id.duplicate",
+          "rjct.timestamp.invalid",
+          "rjct.id.invalid",
+          "rjct.fa.invalid",
+          "rjct.name.invalid",
+          "rjct.mobile_number.invalid",
+          "rjct.unknown.retry",
+          "rjct.other.error"
+        ],
+        "title": "LinkRequestStatusReasonCode"
+      },
+      "MsgCallbackHeader": {
+        "properties": {
+          "version": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Version",
+            "default": "1.0.0"
+          },
+          "message_id": {
+            "type": "string",
+            "title": "Message Id"
+          },
+          "message_ts": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Message Ts"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/RequestStatusEnum"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status_reason_code": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MsgHeaderStatusReasonCodeEnum"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status_reason_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Reason Message"
+          },
+          "total_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Count",
+            "default": -1
+          },
+          "completed_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed Count",
+            "default": -1
+          },
+          "sender_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sender Id"
+          },
+          "receiver_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Receiver Id"
+          },
+          "is_encrypted": {
+            "type": "boolean",
+            "title": "Is Encrypted"
+          }
+        },
+        "type": "object",
+        "required": [
+          "message_id",
+          "message_ts",
+          "action",
+          "is_encrypted"
+        ],
+        "title": "MsgCallbackHeader"
+      },
+      "MsgHeader": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version",
+            "default": "1.0.0"
+          },
+          "message_id": {
+            "type": "string",
+            "title": "Message Id"
+          },
+          "message_ts": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Message Ts"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "sender_id": {
+            "type": "string",
+            "title": "Sender Id"
+          },
+          "sender_uri": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sender Uri",
+            "default": ""
+          },
+          "receiver_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Receiver Id",
+            "default": ""
+          },
+          "total_count": {
+            "type": "integer",
+            "title": "Total Count"
+          },
+          "is_msg_encrypted": {
+            "type": "boolean",
+            "title": "Is Msg Encrypted",
+            "default": false
+          },
+          "meta": {
+            "type": "object",
+            "title": "Meta",
+            "default": {}
+          }
+        },
+        "type": "object",
+        "required": [
+          "message_id",
+          "message_ts",
+          "action",
+          "sender_id",
+          "total_count"
+        ],
+        "title": "MsgHeader"
+      },
+      "MsgHeaderStatusReasonCodeEnum": {
+        "type": "string",
+        "enum": [
+          "rjct.version.invalid",
+          "rjct.message_id.duplicate",
+          "rjct.message_ts.invalid",
+          "rjct.action.invalid",
+          "rjct.action.not_supported",
+          "rjct.total_count.invalid",
+          "rjct.total_count.limit_exceeded",
+          "rjct.errors.too_many"
+        ],
+        "title": "MsgHeaderStatusReasonCodeEnum"
+      },
+      "MsgResponseHeader": {
+        "properties": {
+          "version": {
+            "type": "string",
+            "title": "Version",
+            "default": "1.0.0"
+          },
+          "message_id": {
+            "type": "string",
+            "title": "Message Id"
+          },
+          "message_ts": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Message Ts",
+            "default": "2023-12-11T12:56:37.673788"
+          },
+          "action": {
+            "type": "string",
+            "title": "Action"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MsgStatusEnum"
+          },
+          "status_reason_code": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/MsgStatusReasonCodeEnum"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status_reason_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Reason Message",
+            "default": ""
+          },
+          "sender_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Sender Id",
+            "default": ""
+          },
+          "receiver_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Receiver Id",
+            "default": ""
+          },
+          "total_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Total Count",
+            "default": -1
+          },
+          "completed_count": {
+            "anyOf": [
+              {
+                "type": "integer"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Completed Count",
+            "default": -1
+          },
+          "is_msg_encrypted": {
+            "type": "boolean",
+            "title": "Is Msg Encrypted",
+            "default": false
+          },
+          "meta": {
+            "type": "object",
+            "title": "Meta",
+            "default": {}
+          }
+        },
+        "type": "object",
+        "required": [
+          "message_id",
+          "action",
+          "status"
+        ],
+        "title": "MsgResponseHeader"
+      },
+      "MsgStatusEnum": {
+        "type": "string",
+        "enum": [
+          "rcvd",
+          "pdng",
+          "succ",
+          "rjct",
+          "fail"
+        ],
+        "title": "MsgStatusEnum"
+      },
+      "MsgStatusReasonCodeEnum": {
+        "type": "string",
+        "enum": [
+          "rjct.version.invalid",
+          "rjct.message_id.duplicate",
+          "rjct.message_ts.invalid",
+          "rjct.action.invalid",
+          "rjct.action.not_supported",
+          "rjct.total_count.invalid",
+          "rjct.total_count.limit_exceeded",
+          "rjct.errors.too_many"
+        ],
+        "title": "MsgStatusReasonCodeEnum"
+      },
+      "RequestStatusEnum": {
+        "type": "string",
+        "enum": [
+          "rcvd",
+          "pdng",
+          "succ",
+          "rjct"
+        ],
+        "title": "RequestStatusEnum"
+      },
+      "ResolveCallbackHttpRequest": {
+        "properties": {
+          "signature": {
+            "type": "string",
+            "title": "Signature"
+          },
+          "header": {
+            "$ref": "#/components/schemas/MsgCallbackHeader"
+          },
+          "message": {
+            "$ref": "#/components/schemas/ResolveCallbackRequest"
+          }
+        },
+        "type": "object",
+        "required": [
+          "signature",
+          "header",
+          "message"
+        ],
+        "title": "ResolveCallbackHttpRequest"
+      },
+      "ResolveCallbackRequest": {
+        "properties": {
+          "transaction_id": {
+            "type": "string",
+            "title": "Transaction Id"
+          },
+          "correlation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correlation Id",
+            "default": ""
+          },
+          "resolve_response": {
+            "items": {
+              "$ref": "#/components/schemas/SingleResolveCallbackRequest"
+            },
+            "type": "array",
+            "title": "Resolve Response"
+          }
+        },
+        "type": "object",
+        "required": [
+          "transaction_id",
+          "resolve_response"
+        ],
+        "title": "ResolveCallbackRequest"
+      },
+      "ResolveRequestStatusReasonCode": {
+        "type": "string",
+        "enum": [
+          "rjct.reference_id.invalid",
+          "rjct.reference_id.duplicate",
+          "rjct.timestamp.invalid",
+          "rjct.id.invalid",
+          "rjct.fa.invalid",
+          "rjct.resolve_type.not_supported",
+          "succ.fa.active",
+          "succ.fa.inactive",
+          "succ.fa.not_found",
+          "succ.fa.not_linked_to_id",
+          "succ.id.active",
+          "succ.id.inactive",
+          "succ.id.not_found"
+        ],
+        "title": "ResolveRequestStatusReasonCode"
+      },
+      "SingleDisburseRequest": {
+        "properties": {
+          "reference_id": {
+            "type": "string",
+            "title": "Reference Id"
+          },
+          "payer_fa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payer Fa"
+          },
+          "payee_fa": {
+            "type": "string",
+            "title": "Payee Fa"
+          },
+          "amount": {
+            "type": "string",
+            "title": "Amount"
+          },
+          "scheduled_timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Scheduled Timestamp"
+          },
+          "payer_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payer Name"
+          },
+          "payee_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payee Name"
+          },
+          "note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Note"
+          },
+          "purpose": {
+            "type": "string",
+            "title": "Purpose"
+          },
+          "instruction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instruction"
+          },
+          "currency_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency Code"
+          },
+          "locale": {
+            "type": "string",
+            "title": "Locale",
+            "default": "eng"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reference_id",
+          "payee_fa",
+          "amount",
+          "scheduled_timestamp"
+        ],
+        "title": "SingleDisburseRequest"
+      },
+      "SingleDisburseResponse": {
+        "properties": {
+          "reference_id": {
+            "type": "string",
+            "title": "Reference Id"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp",
+            "default": "2023-12-11T12:56:37.681622"
+          },
+          "status": {
+            "$ref": "#/components/schemas/MsgStatusEnum"
+          },
+          "status_reason_code": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/SingleDisburseStatusEnum"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status_reason_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Reason Message",
+            "default": ""
+          },
+          "instruction": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Instruction"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
+          },
+          "payer_fa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payer Fa"
+          },
+          "payer_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payer Name"
+          },
+          "payee_fa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payee Fa"
+          },
+          "payee_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Payee Name"
+          },
+          "currency_code": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Currency Code"
+          },
+          "locale": {
+            "type": "string",
+            "title": "Locale",
+            "default": "eng"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reference_id",
+          "status"
+        ],
+        "title": "SingleDisburseResponse"
+      },
+      "SingleDisburseStatusEnum": {
+        "type": "string",
+        "enum": [
+          "rjct.reference_id.invalid",
+          "rjct.reference_id.duplicate",
+          "rjct.timestamp.invalid",
+          "rjct.payer_fa.invalid",
+          "rjct.payee_fa.invalid",
+          "rjct.amount.invalid",
+          "rjct.schedule_ts.invalid",
+          "rjct.currency_code.invalid",
+          "rjct.payment.failed"
+        ],
+        "title": "SingleDisburseStatusEnum"
+      },
+      "SingleDisburseTxnStatusRequest": {
+        "properties": {
+          "reference_id": {
+            "type": "string",
+            "title": "Reference Id"
+          },
+          "txn_type": {
+            "$ref": "#/components/schemas/TxnStatusTypeEnum"
+          },
+          "attribute_type": {
+            "$ref": "#/components/schemas/TxnStatusAttributeTypeEnum"
+          },
+          "attribute_value": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "items": {
+                  "type": "string"
+                },
+                "type": "array"
+              }
+            ],
+            "title": "Attribute Value"
+          },
+          "locale": {
+            "type": "string",
+            "title": "Locale",
+            "default": "eng"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reference_id",
+          "txn_type",
+          "attribute_type",
+          "attribute_value"
+        ],
+        "title": "SingleDisburseTxnStatusRequest"
+      },
+      "SingleDisburseTxnStatusResponse": {
+        "properties": {
+          "txn_type": {
+            "type": "string",
+            "title": "Txn Type"
+          },
+          "txn_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/DisburseResponse"
+              },
+              {
+                "items": {
+                  "anyOf": [
+                    {
+                      "$ref": "#/components/schemas/SingleDisburseResponse"
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "type": "array"
+              }
+            ],
+            "title": "Txn Status"
+          }
+        },
+        "type": "object",
+        "required": [
+          "txn_type",
+          "txn_status"
+        ],
+        "title": "SingleDisburseTxnStatusResponse"
+      },
+      "SingleLinkCallbackRequest": {
+        "properties": {
+          "reference_id": {
+            "type": "string",
+            "title": "Reference Id"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          },
+          "fa": {
+            "type": "string",
+            "title": "Fa"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RequestStatusEnum"
+          },
+          "status_reason_code": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/LinkRequestStatusReasonCode"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status_reason_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Reason Message",
+            "default": ""
+          },
+          "additional_info": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AdditionalInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "locale": {
+            "type": "string",
+            "title": "Locale",
+            "default": "eng"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reference_id",
+          "timestamp",
+          "fa",
+          "status"
+        ],
+        "title": "SingleLinkCallbackRequest"
+      },
+      "SingleResolveCallbackRequest": {
+        "properties": {
+          "reference_id": {
+            "type": "string",
+            "title": "Reference Id"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          },
+          "fa": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Fa",
+            "default": ""
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id",
+            "default": ""
+          },
+          "account_provider_info": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AccountProviderInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status": {
+            "$ref": "#/components/schemas/RequestStatusEnum"
+          },
+          "status_reason_code": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/ResolveRequestStatusReasonCode"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status_reason_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Reason Message",
+            "default": ""
+          },
+          "additional_info": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AdditionalInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "locale": {
+            "type": "string",
+            "title": "Locale",
+            "default": "eng"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reference_id",
+          "timestamp",
+          "status"
+        ],
+        "title": "SingleResolveCallbackRequest"
+      },
+      "SingleUpdateCallbackRequest": {
+        "properties": {
+          "reference_id": {
+            "type": "string",
+            "title": "Reference Id"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Timestamp"
+          },
+          "id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Id",
+            "default": ""
+          },
+          "status": {
+            "$ref": "#/components/schemas/RequestStatusEnum"
+          },
+          "status_reason_code": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/UpdateRequestStatusReasonCode"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "status_reason_message": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Status Reason Message",
+            "default": ""
+          },
+          "additional_info": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AdditionalInfo"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "locale": {
+            "type": "string",
+            "title": "Locale",
+            "default": "eng"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reference_id",
+          "timestamp",
+          "status"
+        ],
+        "title": "SingleUpdateCallbackRequest"
+      },
+      "TxnStatusAttributeTypeEnum": {
+        "type": "string",
+        "enum": [
+          "transaction_id",
+          "reference_id_list"
+        ],
+        "title": "TxnStatusAttributeTypeEnum"
+      },
+      "TxnStatusTypeEnum": {
+        "const": "disburse",
+        "title": "TxnStatusTypeEnum"
+      },
+      "UpdateCallbackHttpRequest": {
+        "properties": {
+          "signature": {
+            "type": "string",
+            "title": "Signature"
+          },
+          "header": {
+            "$ref": "#/components/schemas/MsgCallbackHeader"
+          },
+          "message": {
+            "$ref": "#/components/schemas/UpdateCallbackRequest"
+          }
+        },
+        "type": "object",
+        "required": [
+          "signature",
+          "header",
+          "message"
+        ],
+        "title": "UpdateCallbackHttpRequest"
+      },
+      "UpdateCallbackRequest": {
+        "properties": {
+          "transaction_id": {
+            "type": "string",
+            "title": "Transaction Id"
+          },
+          "correlation_id": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correlation Id",
+            "default": ""
+          },
+          "update_response": {
+            "items": {
+              "$ref": "#/components/schemas/SingleUpdateCallbackRequest"
+            },
+            "type": "array",
+            "title": "Update Response"
+          }
+        },
+        "type": "object",
+        "required": [
+          "transaction_id",
+          "update_response"
+        ],
+        "title": "UpdateCallbackRequest"
+      },
+      "UpdateRequestStatusReasonCode": {
+        "type": "string",
+        "enum": [
+          "rjct.reference_id.invalid",
+          "rjct.reference_id.duplicate",
+          "rjct.timestamp.invalid",
+          "rjct.beneficiary_name.invalid"
+        ],
+        "title": "UpdateRequestStatusReasonCode"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}
