@@ -17,6 +17,7 @@ from g2p_cash_transfer_bridge_core.services.id_translate_service import (
     IdTranslateService,
 )
 from openg2p_fastapi_common.config import Settings as BaseSettings
+from openg2p_fastapi_common.errors import BaseAppException
 from openg2p_fastapi_common.service import BaseService
 from openg2p_fastapi_common.utils.ctx_thread import CTXThread
 from pydantic import BaseModel
@@ -42,6 +43,7 @@ class Settings(BaseSettings):
     db_dbname: str = "gctbdb"
     db_driver: str = "postgresql"
 
+    dsbmt_loop_intial_delay_secs: int = 30
     dsbmt_loop_interval_secs: int = 10
     dsbmt_loop_filter_backend_name: bool = True
     dsbmt_loop_filter_status: List[str] = ["rcvd", "fail"]
@@ -83,10 +85,11 @@ class SimpleMpesaPaymentBackendService(BaseService):
         self.disburse_loop_thread.start()
 
     def disburse_loop(self):
-        while not self.disburse_loop_killed:
-            db_response = []
-            dbengine = create_engine(_config.db_datasource, echo=_config.db_logging)
-            with Session(dbengine, expire_on_commit=False) as session:
+        time.sleep(_config.dsbmt_loop_intial_delay_secs)
+        dbengine = create_engine(_config.db_datasource, echo=_config.db_logging)
+        with Session(dbengine, expire_on_commit=False) as session:
+            while not self.disburse_loop_killed:
+                db_response = []
                 stmt = select(PaymentListItem)
                 if (
                     _config.dsbmt_loop_filter_backend_name
@@ -130,8 +133,7 @@ class SimpleMpesaPaymentBackendService(BaseService):
                     _logger.info(
                         "GCTB Simple Mpesa - no records found in payment list table."
                     )
-
-            time.sleep(_config.dsbmt_loop_interval_secs)
+                time.sleep(_config.dsbmt_loop_interval_secs)
 
     def disburse(self, payments: List[PaymentListItem], session: Session):
         try:
@@ -213,13 +215,23 @@ from openg2p_common_g2pconnect_id_mapper.app import (
     Initializer as G2pConnectMapperInitializer,
 )
 from openg2p_fastapi_common.app import Initializer
-from openg2p_fastapi_common.ping import PingInitializer
+from openg2p_fastapi_common.ping import PingController
+
+
+class PingController(PingController):
+    async def get_ping(self):
+        res = await super().get_ping()
+        payment_backend = SimpleMpesaPaymentBackendService.get_component()
+        if not payment_backend.disburse_loop_thread.is_alive():
+            raise BaseAppException("GCTB-MLP-700", "Disbursement Loop is not running")
+        return res
 
 
 class PaymentBackendInitializer(Initializer):
     def initialize(self, **kwargs):
         super().initialize(**kwargs)
         self.payment_backend = SimpleMpesaPaymentBackendService()
+        PingController().post_init()
 
     def init_db(self):
         pass
@@ -235,5 +247,4 @@ if __name__ == "__main__":
     main_init = PaymentBackendInitializer()
     G2pConnectMapperInitializer()
     TranslateIdInitializer()
-    PingInitializer()
     main_init.main()
