@@ -42,6 +42,20 @@ class DisbursementController(BaseController):
         )
 
     async def disburse_sync_disburse(self, request: DisburseHttpRequest):
+        """
+        Make a disbursement request. (G2P Connect compliant API - sync).
+        - This API does NOT perform the entire disursement process synchronously.
+          It only receives the disbubrsement request and returns acknowledgement synchronously.
+          Use the status API to get the actual status of disbursement.
+        - The payee_fa field in message->disbursements[] can either be FA or ID of the payee,
+          depending on the bridge configuration.
+        - If bridge is configured to receive ID in payee_fa, then the bridge will translate ID
+          to FA using a G2P Connect ID Mapper before making payment
+          (Depends on the payment backend).
+        - The payer_fa field in message->disbursements[] is optional in this impl of bridge.
+          If payer_fa is not given, the bridge will take the default values configured
+          (Depends on the payment backend).
+        """
         # Perform any extra validations here
         if not request.message.transaction_id:
             request.message.transaction_id = str(uuid.uuid4())
@@ -83,6 +97,22 @@ class DisbursementController(BaseController):
         )
 
     async def disburse_sync_txn_status(self, request: DisburseTxnStatusHttpRequest):
+        """
+        Get status of a disbursement request. (G2P Connect compliant API - sync).
+        - The current supported value for txn_type in message->txnstatus_request is "disburse".
+        - The current supported values for attribute_type in message->txnstatus_request are
+          "transaction_id" and "reference_id_list".
+        - To get the status of a particular transaction, pass attribute_type as "transaction_id".
+          Then attribute_value in message->txnstatus_request expects a transaction id (string).
+        - To get the status of individual payments within transactions, pass attribute_type is
+          "reference_id_list".
+          Then attribute_value in message->txnstatus_request expects a list of reference
+          ids (payment ids, list of strings).
+
+        Errors:
+        - Code: GCTB-PMS-350. HTTP: 400. Message: attribute_value is supposed to be a string.
+        - Code: GCTB-PMS-350. HTTP: 400. Message: attribute_value is supposed to be a list.
+        """
         disburse_status_response = await self.payment_multiplexer.disbursement_status(
             request.message
         )

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-echoerr() { 
+echoerr() {
     echo "$@" 1>&2
 }
 
