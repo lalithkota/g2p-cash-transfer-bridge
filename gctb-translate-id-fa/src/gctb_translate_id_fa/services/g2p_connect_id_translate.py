@@ -21,9 +21,31 @@ class G2PConnectIdTranslateService(IdTranslateService):
             self._id_mapper_service = IDMapperResolveService.get_component()
         return self._id_mapper_service
 
-    async def translate(self, ids: List[str], max_retries=10) -> List[str]:
-        res = await self.id_mapper_service.resolve_request_sync(
-            [MapperValue(id=id) for id in ids], max_retries=max_retries
+    async def translate(
+        self, ids: List[str], loop_sleep=1, max_retries=10
+    ) -> List[str]:
+        res = await self.id_mapper_service.resolve_request(
+            [MapperValue(id=id) for id in ids],
+            loop_sleep=loop_sleep,
+            max_retries=max_retries,
+        )
+        if not res:
+            raise BaseAppException(
+                "GCTB-IMS-300",
+                "ID Mapper Resolve Id: No response received",
+            )
+        if not res.refs:
+            raise BaseAppException(
+                "G2P-IMS-301",
+                "ID Mapper Resolve Id: Invalid Txn without any requests received",
+            )
+        return [res.refs[key].fa for key in res.refs]
+
+    def translate_sync(self, ids: List[str], loop_sleep=1, max_retries=10) -> List[str]:
+        res = self.id_mapper_service.resolve_request_sync(
+            [MapperValue(id=id) for id in ids],
+            loop_sleep=loop_sleep,
+            max_retries=max_retries,
         )
         if not res:
             raise BaseAppException(

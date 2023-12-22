@@ -10,6 +10,9 @@ RUN groupadd -g ${container_user_gid} ${container_user_group} \
 
 WORKDIR /app
 
+RUN install_packages libpq-dev \
+  && apt-get clean && rm -rf /var/lib/apt/lists /var/cache/apt/archives
+
 RUN chown -R ${container_user}:${container_user_group} /app
 USER ${container_user}
 

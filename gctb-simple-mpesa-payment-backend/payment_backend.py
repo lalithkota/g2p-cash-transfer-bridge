@@ -1,9 +1,8 @@
 #!/usr/bin/env python3
 # ruff: noqa: E402
 
-import asyncio
 import logging
-from contextlib import asynccontextmanager
+import time
 from datetime import datetime
 from typing import List
 
@@ -18,12 +17,13 @@ from g2p_cash_transfer_bridge_core.services.id_translate_service import (
     IdTranslateService,
 )
 from openg2p_fastapi_common.config import Settings as BaseSettings
-from openg2p_fastapi_common.context import dbengine
+from openg2p_fastapi_common.errors import BaseAppException
 from openg2p_fastapi_common.service import BaseService
+from openg2p_fastapi_common.utils.ctx_thread import CTXThread
 from pydantic import BaseModel
 from pydantic_settings import SettingsConfigDict
-from sqlalchemy import and_, select
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
+from sqlalchemy import and_, create_engine, select
+from sqlalchemy.orm import Session
 
 
 class Settings(BaseSettings):
@@ -41,7 +41,9 @@ class Settings(BaseSettings):
     openapi_version: str = "0.1.0"
     payment_backend_name: str = "mpesa"
     db_dbname: str = "gctbdb"
+    db_driver: str = "postgresql"
 
+    dsbmt_loop_intial_delay_secs: int = 30
     dsbmt_loop_interval_secs: int = 10
     dsbmt_loop_filter_backend_name: bool = True
     dsbmt_loop_filter_status: List[str] = ["rcvd", "fail"]
@@ -68,8 +70,9 @@ class ReferenceIdStatus(BaseModel):
 class SimpleMpesaPaymentBackendService(BaseService):
     def __init__(self, name="", **kwargs):
         super().__init__(name if name else _config.payment_backend_name, **kwargs)
-
         self._id_translate_service = IdTranslateService.get_component()
+        self.disburse_loop_killed = False
+        self.disburse_loop_thread: CTXThread = None
 
     @property
     def id_translate_service(self):
@@ -78,13 +81,15 @@ class SimpleMpesaPaymentBackendService(BaseService):
         return self._id_translate_service
 
     def post_init(self):
-        asyncio.create_task(self.disburse_loop())
+        self.disburse_loop_thread = CTXThread(target=self.disburse_loop)
+        self.disburse_loop_thread.start()
 
-    async def disburse_loop(self):
-        while True:
-            db_response = []
-            async_session_maker = async_sessionmaker(dbengine.get())
-            async with async_session_maker() as session:
+    def disburse_loop(self):
+        time.sleep(_config.dsbmt_loop_intial_delay_secs)
+        dbengine = create_engine(_config.db_datasource, echo=_config.db_logging)
+        with Session(dbengine, expire_on_commit=False) as session:
+            while not self.disburse_loop_killed:
+                db_response = []
                 stmt = select(PaymentListItem)
                 if (
                     _config.dsbmt_loop_filter_backend_name
@@ -116,22 +121,21 @@ class SimpleMpesaPaymentBackendService(BaseService):
                         )
                     )
                 stmt = stmt.order_by(PaymentListItem.id.asc())
-                result = await session.execute(stmt)
+                result = session.execute(stmt)
 
                 db_response = list(result.scalars())
                 if db_response:
                     _logger.info(
                         "GCTB Simple Mpesa - processing payment from payment list."
                     )
-                    await self.disburse(db_response, session)
+                    self.disburse(db_response, session)
                 else:
                     _logger.info(
                         "GCTB Simple Mpesa - no records found in payment list table."
                     )
+                time.sleep(_config.dsbmt_loop_interval_secs)
 
-            await asyncio.sleep(_config.dsbmt_loop_interval_secs)
-
-    async def disburse(self, payments: List[PaymentListItem], session: AsyncSession):
+    def disburse(self, payments: List[PaymentListItem], session: Session):
         try:
             # from_fa field will be ignored in this payment_backend
             data = {"email": _config.agent_email, "password": _config.agent_password}
@@ -152,18 +156,19 @@ class SimpleMpesaPaymentBackendService(BaseService):
                 payment.status = MsgStatusEnum.rjct
                 payment.error_code = SingleDisburseStatusEnum.rjct_payment_failed
                 payment.error_msg = "Mpesa Payment Failed during authentication"
-            await session.commit()
+            session.commit()
             return
 
         for payment in payments:
             payee_acc_no = ""
             if _config.translate_id_to_fa:
                 try:
-                    payee_acc_no = await self.id_translate_service.translate(
+                    payee_acc_no = self.id_translate_service.translate_sync(
                         [
                             payment.to_fa,
                         ],
-                        max_retries=10,
+                        loop_sleep=0,
+                        max_retries=100,
                     )
                     if payee_acc_no:
                         payee_acc_no = payee_acc_no[0]
@@ -176,7 +181,7 @@ class SimpleMpesaPaymentBackendService(BaseService):
             }
             data = {
                 "amount": int(float(payment.amount)),
-                "accountNo": await self.get_account_no_from_payee_fa(payee_acc_no),
+                "accountNo": self.get_account_no_from_payee_fa(payee_acc_no),
                 "customerType": _config.customer_type,
             }
             try:
@@ -199,9 +204,9 @@ class SimpleMpesaPaymentBackendService(BaseService):
                 payment.error_code = SingleDisburseStatusEnum.rjct_payment_failed
                 payment.error_msg = "Mpesa Payment Failed with unknown reason"
 
-            await session.commit()
+            session.commit()
 
-    async def get_account_no_from_payee_fa(self, fa: str) -> str:
+    def get_account_no_from_payee_fa(self, fa: str) -> str:
         return fa[fa.find(":") + 1 : fa.rfind(".")]
 
 
@@ -210,24 +215,36 @@ from openg2p_common_g2pconnect_id_mapper.app import (
     Initializer as G2pConnectMapperInitializer,
 )
 from openg2p_fastapi_common.app import Initializer
-from openg2p_fastapi_common.ping import PingInitializer
+from openg2p_fastapi_common.ping import PingController
+
+
+class PingController(PingController):
+    async def get_ping(self):
+        res = await super().get_ping()
+        payment_backend = SimpleMpesaPaymentBackendService.get_component()
+        if not payment_backend.disburse_loop_thread.is_alive():
+            raise BaseAppException("GCTB-MLP-700", "Disbursement Loop is not running")
+        return res
 
 
 class PaymentBackendInitializer(Initializer):
     def initialize(self, **kwargs):
         super().initialize(**kwargs)
         self.payment_backend = SimpleMpesaPaymentBackendService()
+        PingController().post_init()
 
-    @asynccontextmanager
-    async def fastapi_app_lifespan(self, app: FastAPI):
+    def init_db(self):
+        pass
+
+    async def fastapi_app_startup(self, app: FastAPI):
         self.payment_backend.post_init()
-        yield
-        await dbengine.get().dispose()
+
+    async def fastapi_app_shutdown(self, app: FastAPI):
+        self.payment_backend.disburse_loop_killed = True
 
 
 if __name__ == "__main__":
     main_init = PaymentBackendInitializer()
     G2pConnectMapperInitializer()
     TranslateIdInitializer()
-    PingInitializer()
     main_init.main()

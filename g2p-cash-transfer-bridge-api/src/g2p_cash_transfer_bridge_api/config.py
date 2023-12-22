@@ -4,23 +4,6 @@ from g2p_cash_transfer_bridge_core.config import Settings
 from pydantic import BaseModel, model_validator
 
 
-class PayerFaPayeeFaMapping(BaseModel):
-    order: int
-    """
-    Order of payer fa mapping
-    """
-
-    regex: str
-    """
-    regex to match the payee fa
-    """
-
-    payer_fa: str
-    """
-    Payer Fa , if the payee fa matches the given regex
-    """
-
-
 class FaBackendMapping(BaseModel):
     order: int
     """
