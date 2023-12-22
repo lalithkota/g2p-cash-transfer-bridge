@@ -17,6 +17,7 @@
     "/disburse/sync/disburse": {
       "post": {
         "summary": "Disburse Sync Disburse",
+        "description": "Make a disbursement request. (G2P Connect compliant API - sync).\n- This API does NOT perform the entire disursement process synchronously.\n  It only receives the disbubrsement request and returns acknowledgement synchronously.\n  Use the status API to get the actual status of disbursement.\n- The payee_fa field in message->disbursements[] can either be FA or ID of the payee,\n  depending on the bridge configuration.\n- If bridge is configured to receive ID in payee_fa, then the bridge will translate ID\n  to FA using a G2P Connect ID Mapper before making payment\n  (Depends on the payment backend).\n- The payer_fa field in message->disbursements[] is optional in this impl of bridge.\n  If payer_fa is not given, the bridge will take the default values configured\n  (Depends on the payment backend).",
         "operationId": "disburse_sync_disburse_disburse_sync_disburse_post",
         "requestBody": {
           "content": {
@@ -95,6 +96,7 @@
     "/disburse/sync/txn/status": {
       "post": {
         "summary": "Disburse Sync Txn Status",
+        "description": "Get status of a disbursement request. (G2P Connect compliant API - sync).\n- The current supported value for txn_type in message->txnstatus_request is \"disburse\".\n- The current supported values for attribute_type in message->txnstatus_request are\n  \"transaction_id\" and \"reference_id_list\".\n- To get the status of a particular transaction, pass attribute_type as \"transaction_id\".\n  Then attribute_value in message->txnstatus_request expects a transaction id (string).\n- To get the status of individual payments within transactions, pass attribute_type is\n  \"reference_id_list\".\n  Then attribute_value in message->txnstatus_request expects a list of reference\n  ids (payment ids, list of strings).\n\nErrors:\n- Code: GCTB-PMS-350. HTTP: 400. Message: attribute_value is supposed to be a string.\n- Code: GCTB-PMS-350. HTTP: 400. Message: attribute_value is supposed to be a list.",
         "operationId": "disburse_sync_txn_status_disburse_sync_txn_status_post",
         "requestBody": {
           "content": {
@@ -176,6 +178,7 @@
           "callback"
         ],
         "summary": "Mapper On Link",
+        "description": "The API that ID Mapper calls back when a ID Mapper Link Request is made.\n- Returns positive ACK (acc to G2P Connect Spec) if the txn_id is known.\n  Return negative ACK otherwise.",
         "operationId": "mapper_on_link_internal_callback_mapper_on_link_post",
         "requestBody": {
           "content": {
@@ -257,6 +260,7 @@
           "callback"
         ],
         "summary": "Mapper On Update",
+        "description": "The API that ID Mapper calls back when a ID Mapper Update Request is made.\n- Returns positive ACK (acc to G2P Connect Spec) if the txn_id is known.\n  Return negative ACK otherwise.",
         "operationId": "mapper_on_update_internal_callback_mapper_on_update_post",
         "requestBody": {
           "content": {
@@ -338,6 +342,7 @@
           "callback"
         ],
         "summary": "Mapper On Resolve",
+        "description": "The API that ID Mapper calls back when a ID Mapper Resolve Request is made.\n- Returns positive ACK (acc to G2P Connect Spec) if the txn_id is known.\n  Return negative ACK otherwise.",
         "operationId": "mapper_on_resolve_internal_callback_mapper_on_resolve_post",
         "requestBody": {
           "content": {
@@ -419,6 +424,7 @@
           "ping"
         ],
         "summary": "Get Ping",
+        "description": "Returns \"pong\" always, if the service is healthy.\nThis can also used for service health checks.",
         "operationId": "get_ping_ping_get",
         "responses": {
           "200": {
@@ -1144,7 +1150,7 @@
             "type": "string",
             "format": "date-time",
             "title": "Message Ts",
-            "default": "2023-11-30T06:53:17.875700"
+            "default": "2023-12-22T13:06:46.491253"
           },
           "action": {
             "type": "string",
@@ -1464,7 +1470,7 @@
             "type": "string",
             "format": "date-time",
             "title": "Timestamp",
-            "default": "2023-11-30T06:53:17.883759"
+            "default": "2023-12-22T13:06:46.499645"
           },
           "status": {
             "$ref": "#/components/schemas/MsgStatusEnum"
