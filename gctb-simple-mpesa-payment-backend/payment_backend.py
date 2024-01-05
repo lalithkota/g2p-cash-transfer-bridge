@@ -49,10 +49,10 @@ class Settings(BaseSettings):
     dsbmt_loop_filter_status: List[str] = ["rcvd", "fail"]
     translate_id_to_fa: bool = True
 
-    agent_email: str = ""
-    agent_password: str = ""
-    auth_url: str = ""
-    payment_url: str = ""
+    agent_email: str = "agent.mpesa@openg2p.org"
+    agent_password: str = "openg2p123"
+    auth_url: str = "https://mpesa.qa.openg2p.net/api/login/agent"
+    payment_url: str = "https://mpesa.qa.openg2p.net/api/transaction/deposit"
     api_timeout: int = 10
     customer_type: str = "subscriber"
 
