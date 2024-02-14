@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: payment-backend
-          image: lalithkota/gctb-payment-backend:develop
+          image: openg2p/gctb-payment-backend:develop
           imagePullPolicy: Always
           env:
             - name: GCTB_MOJALOOP_SDK_DB_HOSTNAME
